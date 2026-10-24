@@ -22,7 +22,7 @@ export const ReviewsScreen = () => {
   const handleSubmit = () => {
     // Basic Validation
     const ratingNum = Number(currentRating);
-    if (!currentRating || ratingNum < 1 || ratingNum > 5) {
+    if (!currentRating || Number.isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
       Alert.alert("Validation Error", "Please enter a valid rating between 1 and 5 stars.");
       return;
     }
