@@ -1,5 +1,12 @@
-import SearchScreen from "./src/screens/SearchScreen";
+
+import React from 'react';
+import SearchScreen from './src/screens/SearchScreen';
+import { FavoritesProvider } from './src/context/FavoritesContext';
 
 export default function App() {
-  return <SearchScreen />;
+  return (
+    <FavoritesProvider>
+      <SearchScreen />
+    </FavoritesProvider>
+  );
 }
