@@ -9,7 +9,13 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function SearchScreen() {
+interface SearchScreenProps {
+  onViewBusiness: (businessName: string) => void;
+}
+
+export default function SearchScreen({
+  onViewBusiness,
+}: SearchScreenProps) {
   const [searchText, setSearchText] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [favorites, setFavorites] = useState(["North & Pine"]);
@@ -99,7 +105,6 @@ export default function SearchScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.logo}>POPMAP</Text>
@@ -114,7 +119,6 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={19} color="#a8a8a8" />
 
@@ -127,7 +131,6 @@ export default function SearchScreen() {
           />
         </View>
 
-        {/* Filters */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -154,7 +157,6 @@ export default function SearchScreen() {
           ))}
         </ScrollView>
 
-        {/* Nearby heading */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Nearby places</Text>
 
@@ -163,7 +165,6 @@ export default function SearchScreen() {
           </Text>
         </View>
 
-        {/* Business cards */}
         {filteredBusinesses.map((business) => {
           const isFavorite = favorites.includes(business.name);
 
@@ -183,7 +184,9 @@ export default function SearchScreen() {
               </View>
 
               <View style={styles.cardInfo}>
-                <Text style={styles.businessName}>{business.name}</Text>
+                <Text style={styles.businessName}>
+                  {business.name}
+                </Text>
 
                 <Text style={styles.businessDetails}>
                   {business.category} • {business.distance}
@@ -192,7 +195,9 @@ export default function SearchScreen() {
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={15} color="#ffb000" />
 
-                  <Text style={styles.rating}>{business.rating}</Text>
+                  <Text style={styles.rating}>
+                    {business.rating}
+                  </Text>
 
                   <Text style={styles.reviewCount}>
                     ({business.reviews})
@@ -212,8 +217,13 @@ export default function SearchScreen() {
                   />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.viewButton}>
-                  <Text style={styles.viewButtonText}>View Business</Text>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => onViewBusiness(business.name)}
+                >
+                  <Text style={styles.viewButtonText}>
+                    View Business
+                  </Text>
 
                   <Ionicons
                     name="arrow-forward"
@@ -234,7 +244,9 @@ export default function SearchScreen() {
               color="#b7b7b7"
             />
 
-            <Text style={styles.emptyTitle}>No businesses found</Text>
+            <Text style={styles.emptyTitle}>
+              No businesses found
+            </Text>
 
             <Text style={styles.emptyText}>
               Try another search or category.
@@ -243,7 +255,6 @@ export default function SearchScreen() {
         )}
       </ScrollView>
 
-      {/* Bottom navigation */}
       <View style={styles.nav}>
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="map-outline" size={22} color="#aaa" />
@@ -254,6 +265,7 @@ export default function SearchScreen() {
           <View style={styles.activeNavIcon}>
             <Ionicons name="search" size={20} color="#ff6b21" />
           </View>
+
           <Text style={styles.activeNavText}>Search</Text>
         </TouchableOpacity>
 
@@ -390,6 +402,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 8,
+
     shadowOffset: {
       width: 0,
       height: 3,

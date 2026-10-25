@@ -8,7 +8,7 @@ interface FavoritesScreenProps {
 
 export default function FavoritesScreen() {
   return (
-    <View contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>Favorites</Text>
       <Text style={styles.subtitle}>Your favorite items will appear here.</Text>
     </View>
