@@ -3,7 +3,7 @@
 Project Manager: Jadon Joseph (Thundurclp)\
 Communications Lead: Nicole Dixon (NDixon20)\
 Git Master: Destiny Rotich (destiny-rotich)\
-Design Lead: Jewel Akhabur (Jakhabue1)\
+Design Lead: Jewel Akhabue (Jakhabue1)\
 Quality Assurance Tester: [David Eugene] ([DEugene09])
 
 # About Our Software
