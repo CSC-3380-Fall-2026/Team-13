@@ -1,20 +1,17 @@
 # [Name of the Project] : [Team 13]
 # Members
 Project Manager: Jadon Joseph (Thundurclp)\
-Communications Lead: [Name] ([GitHub Name])\
-Git Master: [Name] ([GitHub Name])\
-Design Lead: [Name] ([GitHub Name])\
+Communications Lead: Nicole Dixon (NDixon20)\
+Git Master: Destiny Rotich (destiny-rotich)\
+Design Lead: Jewel Akhabur (Jakhabue1)\
 Quality Assurance Tester: [David Eugene] ([DEugene09])
 
 # About Our Software
 
 Describe a little about what the project is about here.
 ## Platforms Tested on
-- MacOS
 - Android
 - iOS
-- Linux
-- Windows
 # Important Links
 Kanban Board: [link]\
 Designs: [link]\
