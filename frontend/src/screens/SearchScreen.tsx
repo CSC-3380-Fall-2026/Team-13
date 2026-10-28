@@ -8,11 +8,14 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import FavoritesScreen from "./FavoritesScreen";
+
 
 export default function SearchScreen() {
   const [searchText, setSearchText] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [favorites, setFavorites] = useState(["North & Pine"]);
+  const [activeTab, setActiveTab] = useState("Search");
 
   const businesses = [
     {
@@ -93,8 +96,16 @@ export default function SearchScreen() {
     }
   }
 
-  return (
+    return (
     <View style={styles.container}>
+      {activeTab === "Favorites" ? (
+        <FavoritesScreen
+          businesses={businesses.filter((business) =>
+            favorites.includes(business.name)
+          )}
+          onRemove={toggleFavorite}
+        />
+      ) : (
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -242,6 +253,7 @@ export default function SearchScreen() {
           </View>
         )}
       </ScrollView>
+      )}
 
       {/* Bottom navigation */}
       <View style={styles.nav}>
@@ -250,16 +262,34 @@ export default function SearchScreen() {
           <Text style={styles.navText}>Map</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.activeNavIcon}>
-            <Ionicons name="search" size={20} color="#ff6b21" />
+                <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab("Search")}
+        >
+          <View style={activeTab === "Search" && styles.activeNavIcon}>
+            <Ionicons
+              name="search"
+              size={20}
+              color={activeTab === "Search" ? "#ff6b21" : "#aaa"}
+            />
           </View>
-          <Text style={styles.activeNavText}>Search</Text>
+          <Text style={activeTab === "Search" ? styles.activeNavText : styles.navText}>
+            Search
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="heart" size={22} color="#aaa" />
-          <Text style={styles.navText}>Favorites</Text>
+                <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab("Favorites")}
+        >
+          <Ionicons
+            name="heart"
+            size={22}
+            color={activeTab === "Favorites" ? "#ff6b21" : "#aaa"}
+          />
+          <Text style={activeTab === "Favorites" ? styles.activeNavText : styles.navText}>
+            Favorites
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
