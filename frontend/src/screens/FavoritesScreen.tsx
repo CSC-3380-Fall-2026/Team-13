@@ -8,10 +8,10 @@ interface FavoritesScreenProps {
 
 export default function FavoritesScreen() {
   return (
-    <View contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Favorites</Text>
       <Text style={styles.subtitle}>Your favorite items will appear here.</Text>
-    </View>
+    </ScrollView>
   );
 }
 
