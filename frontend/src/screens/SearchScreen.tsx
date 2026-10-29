@@ -1,29 +1,45 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  StyleSheet,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function SearchScreen() {
+interface SearchScreenProps {
+  onViewBusiness: (businessName: string) => void;
+  onNavigate: (screen: string) => void;
+  favorites: string[];
+  onToggleFavorite: (businessName: string) => void;
+}
+
+interface Business {
+  name: string;
+  category: string;
+  distance: string;
+  rating: number;
+  reviews: number;
+}
+
+export default function SearchScreen({
+  onViewBusiness,
+  onNavigate,
+  favorites,
+  onToggleFavorite,
+}: SearchScreenProps) {
   const [searchText, setSearchText] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
-  const [favorites, setFavorites] = useState(["North & Pine"]);
 
-  const businesses = [
+  const businesses: Business[] = [
     {
       name: "Juniper & Grain",
       category: "Food",
       distance: "0.3 mi",
       rating: 4.9,
       reviews: 128,
-      icon: "restaurant-outline",
-      iconColor: "#ff6b21",
-      iconBackground: "#fff1e7",
     },
     {
       name: "North & Pine",
@@ -31,9 +47,6 @@ export default function SearchScreen() {
       distance: "0.6 mi",
       rating: 4.8,
       reviews: 94,
-      icon: "bag-handle-outline",
-      iconColor: "#1d9b73",
-      iconBackground: "#e6f8f1",
     },
     {
       name: "Common Ground Studio",
@@ -41,9 +54,6 @@ export default function SearchScreen() {
       distance: "0.8 mi",
       rating: 4.7,
       reviews: 76,
-      icon: "sparkles-outline",
-      iconColor: "#7a4cff",
-      iconBackground: "#f0ebff",
     },
     {
       name: "Little Bird Bakery",
@@ -51,13 +61,16 @@ export default function SearchScreen() {
       distance: "1.1 mi",
       rating: 4.9,
       reviews: 203,
-      icon: "restaurant-outline",
-      iconColor: "#cf651c",
-      iconBackground: "#fff5d9",
     },
   ];
 
-  const filters = ["All", "Food", "Shopping", "Services", "Top Rated"];
+  const filters = [
+    "All",
+    "Food",
+    "Shopping",
+    "Services",
+    "Top Rated",
+  ];
 
   const filteredBusinesses = businesses.filter((business) => {
     const matchesSearch = business.name
@@ -79,73 +92,73 @@ export default function SearchScreen() {
     }
 
     if (selectedFilter === "Top Rated") {
-      matchesFilter = business.rating >= 4.9;
+      matchesFilter = business.rating >= 4.8;
     }
 
     return matchesSearch && matchesFilter;
   });
 
-  function toggleFavorite(name: string) {
-    if (favorites.includes(name)) {
-      setFavorites(favorites.filter((favorite) => favorite !== name));
-    } else {
-      setFavorites([...favorites, name]);
+  function getBusinessIcon(category: string) {
+    if (category === "Food") {
+      return "restaurant-outline";
     }
+
+    if (category === "Shopping") {
+      return "bag-outline";
+    }
+
+    return "sparkles-outline";
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
       <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.logo}>POPMAP</Text>
+        <Text style={styles.logo}>POPMAP</Text>
 
-            <Text style={styles.title}>
-              Find your new{"\n"}local favorite.
-            </Text>
-          </View>
+        <Text style={styles.heading}>
+          Find your new local favorite.
+        </Text>
 
-          <TouchableOpacity style={styles.mapButton}>
-            <Ionicons name="map-outline" size={21} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Search bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={19} color="#a8a8a8" />
+        <View style={styles.searchBar}>
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color="#777"
+          />
 
           <TextInput
             style={styles.searchInput}
-            placeholder="Search businesses"
+            placeholder="Search local businesses"
             placeholderTextColor="#999"
             value={searchText}
             onChangeText={setSearchText}
           />
         </View>
 
-        {/* Filters */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filters}
+          style={styles.filterScroll}
         >
           {filters.map((filter) => (
             <TouchableOpacity
               key={filter}
               style={[
-                styles.filter,
-                selectedFilter === filter && styles.activeFilter,
+                styles.filterButton,
+                selectedFilter === filter &&
+                  styles.activeFilterButton,
               ]}
               onPress={() => setSelectedFilter(filter)}
             >
               <Text
                 style={[
                   styles.filterText,
-                  selectedFilter === filter && styles.activeFilterText,
+                  selectedFilter === filter &&
+                    styles.activeFilterText,
                 ]}
               >
                 {filter}
@@ -154,116 +167,158 @@ export default function SearchScreen() {
           ))}
         </ScrollView>
 
-        {/* Nearby heading */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Nearby places</Text>
+        <Text style={styles.sectionTitle}>Nearby places</Text>
 
-          <Text style={styles.results}>
-            {filteredBusinesses.length} results
-          </Text>
-        </View>
-
-        {/* Business cards */}
         {filteredBusinesses.map((business) => {
-          const isFavorite = favorites.includes(business.name);
+          const isFavorite = favorites.includes(
+            business.name
+          );
 
           return (
-            <View style={styles.card} key={business.name}>
-              <View
-                style={[
-                  styles.businessIcon,
-                  { backgroundColor: business.iconBackground },
-                ]}
-              >
-                <Ionicons
-                  name={business.icon as any}
-                  size={22}
-                  color={business.iconColor}
-                />
-              </View>
+            <View
+              style={styles.businessCard}
+              key={business.name}
+            >
+              <View style={styles.cardTop}>
+                <View style={styles.businessInfo}>
+                  <View style={styles.iconBox}>
+                    <Ionicons
+                      name={getBusinessIcon(
+                        business.category
+                      )}
+                      size={23}
+                      color="#ff6b21"
+                    />
+                  </View>
 
-              <View style={styles.cardInfo}>
-                <Text style={styles.businessName}>{business.name}</Text>
+                  <View style={styles.textContainer}>
+                    <Text style={styles.businessName}>
+                      {business.name}
+                    </Text>
 
-                <Text style={styles.businessDetails}>
-                  {business.category} • {business.distance}
-                </Text>
+                    <Text style={styles.businessDetails}>
+                      {business.category} •{" "}
+                      {business.distance}
+                    </Text>
 
-                <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={15} color="#ffb000" />
+                    <View style={styles.ratingRow}>
+                      <Ionicons
+                        name="star"
+                        size={15}
+                        color="#ff6b21"
+                      />
 
-                  <Text style={styles.rating}>{business.rating}</Text>
-
-                  <Text style={styles.reviewCount}>
-                    ({business.reviews})
-                  </Text>
+                      <Text style={styles.rating}>
+                        {business.rating} (
+                        {business.reviews})
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.cardActions}>
                 <TouchableOpacity
-                  style={styles.heartButton}
-                  onPress={() => toggleFavorite(business.name)}
+                  onPress={() =>
+                    onToggleFavorite(business.name)
+                  }
                 >
                   <Ionicons
-                    name={isFavorite ? "heart" : "heart-outline"}
-                    size={22}
-                    color={isFavorite ? "#ff3b67" : "#aaa"}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.viewButton}>
-                  <Text style={styles.viewButtonText}>View Business</Text>
-
-                  <Ionicons
-                    name="arrow-forward"
-                    size={13}
-                    color="white"
+                    name={
+                      isFavorite
+                        ? "heart"
+                        : "heart-outline"
+                    }
+                    size={24}
+                    color={
+                      isFavorite
+                        ? "#ff6b21"
+                        : "#777"
+                    }
                   />
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={styles.viewButton}
+                onPress={() =>
+                  onViewBusiness(business.name)
+                }
+              >
+                <Text style={styles.viewButtonText}>
+                  View Business
+                </Text>
+
+                <Ionicons
+                  name="arrow-forward"
+                  size={16}
+                  color="#ffffff"
+                />
+              </TouchableOpacity>
             </View>
           );
         })}
 
         {filteredBusinesses.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="search-outline"
-              size={35}
-              color="#b7b7b7"
-            />
-
-            <Text style={styles.emptyTitle}>No businesses found</Text>
-
-            <Text style={styles.emptyText}>
-              Try another search or category.
-            </Text>
-          </View>
+          <Text style={styles.noResults}>
+            No businesses found.
+          </Text>
         )}
+
+        <View style={styles.bottomSpace} />
       </ScrollView>
 
-      {/* Bottom navigation */}
       <View style={styles.nav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="map-outline" size={22} color="#aaa" />
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("map")}
+        >
+          <Ionicons
+            name="map-outline"
+            size={22}
+            color="#999"
+          />
           <Text style={styles.navText}>Map</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("search")}
+        >
           <View style={styles.activeNavIcon}>
-            <Ionicons name="search" size={20} color="#ff6b21" />
+            <Ionicons
+              name="search"
+              size={20}
+              color="#ff6b21"
+            />
           </View>
-          <Text style={styles.activeNavText}>Search</Text>
+
+          <Text style={styles.activeNavText}>
+            Search
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="heart" size={22} color="#aaa" />
-          <Text style={styles.navText}>Favorites</Text>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("favorites")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={22}
+            color="#999"
+          />
+          <Text style={styles.navText}>
+            Favorites
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-outline" size={22} color="#aaa" />
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("profile")}
+        >
+          <Ionicons
+            name="person-outline"
+            size={22}
+            color="#999"
+          />
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -272,256 +327,213 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: "#fbf8f3",
   },
 
-  scrollContent: {
-    paddingTop: 55,
-    paddingHorizontal: 18,
-    paddingBottom: 100,
+  scrollView: {
+    flex: 1,
   },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 55,
   },
 
   logo: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "800",
     color: "#ff6b21",
     letterSpacing: 2,
-    marginBottom: 5,
+    marginBottom: 8,
   },
 
-  title: {
+  heading: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#151515",
-    lineHeight: 27,
+    color: "#171717",
+    marginBottom: 22,
   },
 
-  mapButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: "#ff6b21",
+  searchBar: {
+    height: 48,
+    backgroundColor: "#ffffff",
     borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    paddingHorizontal: 15,
+    marginBottom: 17,
     borderWidth: 1,
-    borderColor: "#ece8e2",
-    borderRadius: 14,
-    marginTop: 20,
-    paddingHorizontal: 14,
-    height: 52,
+    borderColor: "#eeeeee",
   },
 
   searchInput: {
     flex: 1,
+    marginLeft: 10,
     fontSize: 15,
-    marginLeft: 9,
-    color: "#222",
+    color: "#222222",
   },
 
-  filters: {
-    gap: 8,
-    paddingTop: 13,
-    paddingBottom: 18,
+  filterScroll: {
+    marginBottom: 25,
   },
 
-  filter: {
-    backgroundColor: "white",
+  filterButton: {
+    paddingHorizontal: 17,
+    paddingVertical: 9,
+    borderRadius: 20,
+    backgroundColor: "#ffffff",
+    marginRight: 9,
     borderWidth: 1,
-    borderColor: "#e9e4dd",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 22,
+    borderColor: "#eeeeee",
   },
 
-  activeFilter: {
+  activeFilterButton: {
     backgroundColor: "#ff6b21",
     borderColor: "#ff6b21",
   },
 
   filterText: {
     fontSize: 13,
-    color: "#555",
     fontWeight: "600",
+    color: "#666666",
   },
 
   activeFilterText: {
-    color: "white",
-  },
-
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
+    color: "#ffffff",
   },
 
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "800",
+    color: "#171717",
+    marginBottom: 14,
   },
 
-  results: {
-    color: "#999",
-    fontSize: 12,
-  },
-
-  card: {
-    backgroundColor: "white",
+  businessCard: {
+    backgroundColor: "#ffffff",
     borderRadius: 17,
-    padding: 14,
-    marginBottom: 11,
-    flexDirection: "row",
-    minHeight: 110,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
-    elevation: 2,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#eeeeee",
   },
 
-  businessIcon: {
+  cardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
+  businessInfo: {
+    flexDirection: "row",
+    flex: 1,
+  },
+
+  iconBox: {
     width: 48,
     height: 48,
-    borderRadius: 13,
-    alignItems: "center",
+    borderRadius: 14,
+    backgroundColor: "#fff1e8",
     justifyContent: "center",
+    alignItems: "center",
   },
 
-  cardInfo: {
+  textContainer: {
+    marginLeft: 13,
     flex: 1,
-    marginLeft: 12,
   },
 
   businessName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "800",
-    color: "#222",
+    color: "#171717",
   },
 
   businessDetails: {
-    color: "#888",
-    fontSize: 12,
-    marginTop: 4,
+    marginTop: 3,
+    fontSize: 13,
+    color: "#777777",
   },
 
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
-    gap: 4,
+    marginTop: 6,
   },
 
   rating: {
-    fontWeight: "700",
+    marginLeft: 4,
     fontSize: 13,
-  },
-
-  reviewCount: {
-    color: "#aaa",
-    fontSize: 11,
-  },
-
-  cardActions: {
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-
-  heartButton: {
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
+    fontWeight: "600",
+    color: "#444444",
   },
 
   viewButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "#191716",
+    height: 39,
+    backgroundColor: "#151515",
     borderRadius: 20,
-    paddingVertical: 9,
-    paddingHorizontal: 13,
+    marginTop: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   viewButtonText: {
-    color: "white",
-    fontSize: 11,
+    color: "#ffffff",
+    fontSize: 13,
     fontWeight: "700",
+    marginRight: 6,
   },
 
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: 50,
+  noResults: {
+    textAlign: "center",
+    marginTop: 30,
+    color: "#777777",
+    fontSize: 14,
   },
 
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    marginTop: 12,
-  },
-
-  emptyText: {
-    color: "#999",
-    marginTop: 5,
+  bottomSpace: {
+    height: 90,
   },
 
   nav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "white",
+    height: 78,
+    backgroundColor: "#ffffff",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "#eeeeee",
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingTop: 10,
-    paddingBottom: 22,
+    alignItems: "center",
+    paddingBottom: 8,
   },
 
   navItem: {
-    alignItems: "center",
-    minWidth: 60,
-  },
-
-  navText: {
-    fontSize: 10,
-    color: "#999",
-    marginTop: 3,
-  },
-
-  activeNavIcon: {
-    backgroundColor: "#fff0e7",
-    width: 34,
-    height: 28,
-    borderRadius: 14,
+    width: 70,
     alignItems: "center",
     justifyContent: "center",
   },
 
+  navText: {
+    fontSize: 11,
+    color: "#999999",
+    marginTop: 4,
+  },
+
+  activeNavIcon: {
+    width: 34,
+    height: 28,
+    borderRadius: 15,
+    backgroundColor: "#fff1e8",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   activeNavText: {
-    fontSize: 10,
-    color: "#ff6b21",
+    fontSize: 11,
     fontWeight: "700",
+    color: "#ff6b21",
     marginTop: 3,
   },
 });
