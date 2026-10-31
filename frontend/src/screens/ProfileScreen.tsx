@@ -1,9 +1,10 @@
 import React from 'react'; 
 import { ScrollView, View, Text, Image,TextInput, StyleSheet, TouchableOpacity,} from 'react-native'; 
 import { Ionicons } from "@expo/vector-icons";
-
+import {useNavigation} from '@react-navigation/native';
  
 export default function ProfileScreen() { 
+    const navigation = useNavigation<any>();
     const profile={
         name: 'Darren Walker',
         email: 'DWalker21@lsu.edu',
@@ -13,16 +14,14 @@ export default function ProfileScreen() {
     };
      
     return ( 
-       <ScrollView contentContainerStyle={styles.container}>  
-       <View style={styles.headerSpace}>
+        <View style ={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>       <View style={styles.headerSpace}>
         <TouchableOpacity 
              style={styles.editButton} onPress={() => console.log('Edit profile button')}>  
              <Text style = {styles.editButtonText}>Edit Profile</Text>
             </TouchableOpacity> 
-</View>  
+        </View>  
        
-           
-
 
        <View style ={styles.upperRight}>    
         <Text style={styles.upperRightText}> "Discover. Explore. Create."   
@@ -94,16 +93,47 @@ export default function ProfileScreen() {
         </View>
           </View>
        </ScrollView>
-    )
-    }
+    
+    <View style={styles.nav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Map')}>
+          <Ionicons name="map-outline" size={22} color="#aaa" />
+          <Text style={styles.navText}>Map</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Search')}>
+          <Ionicons name="search-outline" size={22} color="#aaa" />
+          <Text style={styles.navText}>Search</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Favorites')}>
+          <Ionicons name="heart-outline" size={22} color="#aaa" />
+          <Text style={styles.navText}>Favorites</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <View style={styles.activeNavIcon}>
+            <Ionicons name="person" size={20} color="#ff6b21" />
+          </View>
+          <Text style={styles.activeNavText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+        
+            
+    );
+ }
 
     const styles = StyleSheet.create({
         container:{
-        padding: 20,
         backgroundColor:'#F9F6F0',
         flexGrow:1,
          } ,
-         headerSpace: {
+        scrollContent:{
+        paddingTop: 80,
+        paddingHorizontal: 18,
+        paddingBottom: 100,
+        },
+        headerSpace: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -139,7 +169,7 @@ export default function ProfileScreen() {
         editButton: {
         width: 102,
         height: 30,
-        backgroundColor: '#C53030',
+        backgroundColor: '#ff6b21',
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 10,
@@ -152,7 +182,7 @@ export default function ProfileScreen() {
         fontSize: 14,
         },
         upperRight:{ 
-        backgroundColor: '#b9601c',
+        backgroundColor: '#ff6b21',
         borderRadius: 16,
         padding: 20,
         marginBottom: 24,
@@ -246,8 +276,41 @@ export default function ProfileScreen() {
         paddingVertical: 10,
         minHeight:50,
         marginBottom: 7,
-        }
-    
-
-
-    })
+        },
+        nav: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingTop: 10,
+        paddingBottom: 22,
+        },
+        navItem: {
+        alignItems: 'center',
+        minWidth: 60,
+        },
+        navText: {
+        fontSize: 10,
+        color: '#999',
+        marginTop: 3,
+        },
+        activeNavIcon: {
+        backgroundColor: '#fff0e7',
+        width: 34,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        },
+        activeNavText: {
+        fontSize: 10,
+        color: '#ff6b21',
+        fontWeight: '700',
+        marginTop: 3,
+        },
+    });

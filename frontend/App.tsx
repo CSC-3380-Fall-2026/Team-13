@@ -21,6 +21,7 @@ export default function App() {
         <Stack.Screen
         name = "ProfileScreen"
         component={ProfileScreen}
+        options={{headerShown: false}}
         />
        
 
