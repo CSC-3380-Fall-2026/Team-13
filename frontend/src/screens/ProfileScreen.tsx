@@ -1,72 +1,253 @@
 import React from 'react'; 
 import { ScrollView, View, Text, Image,TextInput, StyleSheet, TouchableOpacity,} from 'react-native'; 
+import { Ionicons } from "@expo/vector-icons";
+
  
 export default function ProfileScreen() { 
-    const [name, setName] = React.useState(''); 
-    const [bio, setBio] = React.useState(''); 
- 
-    const handleSaveProfile = () => { 
-        console.log('Saving profile with', name, bio); 
-        // Handle save profile logic here 
-    }; 
+    const profile={
+        name: 'Darren Walker',
+        email: 'DWalker21@lsu.edu',
+        location: "Baton Rouge, Louisiana",
+        role: 'Business',
+        about: "Experienced in doing hair for 5 years, versatilie with many hairstyles. "
+    };
      
     return ( 
-        <ScrollView contentContainerStyle={styles.container}> 
-            <Text style={styles.title}>Profile</Text> 
-            <TextInput style={styles.input} 
-                placeholder="Name"
-                value={name} 
-                onChangeText={setName} 
-            /> 
-            <TextInput style={styles.input} 
-                placeholder="Bio" 
-                value={bio} 
-                onChangeText={setBio} 
-                multiline={true} 
-            /> 
-            <TouchableOpacity style={styles.button} 
-            onPress={handleSaveProfile}>
-            </TouchableOpacity>
-             <Text style={styles.buttonText}>Save Profile
-             </Text>
-        </ScrollView> 
-    ); 
-} 
- 
-const styles = StyleSheet.create({ 
-    container: { 
-        flex: 1, 
-        padding: 24, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-    }, 
-    title: { 
-        fontSize: 27, 
-        fontWeight: '700', 
-        color: '#000', 
-        marginBottom: 15, 
-        textAlign: 'center', 
-    }, 
-    input: { 
-        width: '100%', 
-        height: 40, 
-        borderColor: '#ccc', 
-        borderWidth: 1, 
-        borderRadius: 4, 
-        paddingHorizontal: 8, 
-        marginBottom: 12, 
-    }, 
-    button: { 
-        width: '100%', 
-        height: 40, 
-        backgroundColor: '#007BFF', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        borderRadius: 4, 
-        marginTop: 12, 
-    }, 
-    buttonText: { 
-        color: '#fff', 
-        fontWeight: '600', 
-    }, 
-}); 
+       <ScrollView contentContainerStyle={styles.container}>  
+       <View style={styles.headerSpace}>
+        <TouchableOpacity 
+             style={styles.editButton} onPress={() => console.log('Edit profile button')}>  
+             <Text style = {styles.editButtonText}>Edit Profile</Text>
+            </TouchableOpacity> 
+</View>  
+       
+           
+
+
+       <View style ={styles.upperRight}>    
+        <Text style={styles.upperRightText}> "Discover. Explore. Create."   
+            
+            </Text>
+        <View style={styles.profileRow}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitials}>
+                {profile.name.charAt(0)}
+              </Text> 
+              </View>
+            </View>
+
+       <View style={styles.user}>
+        <View style={styles.nameTag}>
+          <Text style={styles.userName}>{profile.name}</Text>
+            <View style={styles.businessID}>  
+                <Text style={styles.idText}>{profile.role}</Text>
+           
+                </View>
+              </View>
+
+             </View>
+          </View>
+          </View>
+
+
+        <View style={styles.detailsD}>  
+           <Text style={styles.detailsTitle}> Personal Details </Text> 
+           <Text style={styles.detailsSubtitle}>How you appear across Popmap</Text>
+
+        
+
+         <View style={styles.detailsFunc}>
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>FULL NAME</Text>
+            <View style={styles.inputBox}>
+              <Text style={styles.inputText}>{profile.name}</Text>
+            </View>
+          </View>
+          </View>
+
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+            <View style={styles.inputBox}>
+              <Text style={styles.inputText}>{profile.email}</Text>
+            </View>
+          </View>
+
+             <View style={styles.aboutFunc}>
+            <Text style={styles.inputLabel}>ABOUT</Text>
+            <View style={styles.aboutBox}>
+              <Text style={styles.inputText}>{profile.about}</Text>
+            </View>
+          </View>
+
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>ROLE</Text>
+            <View style={styles.inputBox}>
+              <Text style={styles.inputText}>{profile.role}</Text>
+            </View>
+          </View>
+           <View style={styles.input}>
+            <Text style={styles.inputLabel}>LOCATION</Text>
+            <View style={styles.inputBox}>
+              <Text style={styles.inputText}>{profile.location}</Text>
+            </View>
+        </View>
+          </View>
+       </ScrollView>
+    )
+    }
+
+    const styles = StyleSheet.create({
+        container:{
+        padding: 20,
+        backgroundColor:'#F9F6F0',
+        flexGrow:1,
+         } ,
+         headerSpace: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 10,
+         },
+        user:{
+        flex: 1,
+        },
+        profileRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        },
+        avatarContainer: {
+        marginRight: 16,
+        },
+        avatarPlaceholder: {
+        width: 80,
+        height: 80,
+        borderRadius: 12,
+        backgroundColor: '#2D3748',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFF',
+        marginBottom: 8,
+        },
+        avatarInitials: {
+        color: '#FFF',
+        fontSize: 32,
+        fontWeight: '700',
+        },
+        editButton: {
+        width: 102,
+        height: 30,
+        backgroundColor: '#C53030',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 10,
+        marginBottom: 10,
+        marginLeft: 250,
+        },
+        editButtonText: {
+        color: '#FFF',
+        fontWeight: '600',
+        fontSize: 14,
+        },
+        upperRight:{ 
+        backgroundColor: '#b9601c',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        },
+        upperRightText:{
+        color: '#FED7D7',
+        fontStyle: 'italic',
+        fontSize : 14,
+        textAlign:'right',
+        marginBottom: 10,
+        },
+        nameTag:{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: -100,
+        },
+        userName:{
+        fontSize:20,
+        fontWeight: '700',
+        color: '#f9f9f9',
+        marginRight: 10,
+        },
+        businessID:{
+        backgroundColor: '#FEB2B2',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        },
+        idText:{
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#7F1D1D',
+        },
+        detailsD:{
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        },
+        detailsTitle:{
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1A202C',
+        marginBottom: 6,
+        },
+        detailsSubtitle:{
+        fontSize: 12,
+        color: '#1A202C',
+        marginBottom: 15,
+        },
+        detailsFunc:{
+        gap: 12,
+        },
+        input:{
+        marginBottom: 8,
+        },
+        inputBox:{
+        backgroundColor:'#F7FAFC',
+        borderWidth:1,
+        borderRadius:8,
+        borderColor: '#E2E8F8',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        },
+        inputLabel:{
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#A0AEC0',
+        letterSpacing:1,
+        marginBottom: 7,
+        },
+        inputText: {
+        fontSize: 14,
+        color: '#2D3748',
+        },
+        aboutFunc:{
+        marginTop: 8,
+        },
+        aboutBox:{
+        backgroundColor: '#F7FAFC',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        minHeight:50,
+        marginBottom: 7,
+        }
+    
+
+
+    })
