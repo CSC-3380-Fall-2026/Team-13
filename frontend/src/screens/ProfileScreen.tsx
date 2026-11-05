@@ -15,6 +15,61 @@ interface ProfileScreenProps {
   onNavigate: (screen: string) => void;
 }
 
+interface DetailRowProps {
+  label: string;
+  value: string;
+}
+
+function DetailRow({ label, value }: DetailRowProps) {
+  return (
+    <View style={styles.detailGroup}>
+      <Text style={styles.label}>{label}</Text>
+
+      <View style={styles.detailBox}>
+        <Text style={styles.detailText}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
+interface NavButtonProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  active?: boolean;
+  onPress?: () => void;
+}
+
+function NavButton({
+  label,
+  icon,
+  active = false,
+  onPress,
+}: NavButtonProps) {
+  return (
+    <TouchableOpacity
+      style={styles.navItem}
+      onPress={onPress}
+      disabled={active}
+    >
+      <Ionicons
+        name={icon}
+        size={22}
+        color={active ? "#ff6b21" : "#999"}
+      />
+
+      <Text
+        style={
+          active
+            ? styles.activeNavText
+            : styles.navText
+        }
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function ProfileScreen({
   firstName,
   lastName,
@@ -30,7 +85,6 @@ export default function ProfileScreen({
   return (
     <View style={styles.screen}>
       <ScrollView
-        style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
@@ -59,9 +113,7 @@ export default function ProfileScreen({
               {fullName}
             </Text>
 
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>User</Text>
-            </View>
+            <Text style={styles.role}>User</Text>
           </View>
         </View>
 
@@ -70,45 +122,24 @@ export default function ProfileScreen({
             Personal Details
           </Text>
 
-          <Text style={styles.sectionSubtitle}>
+          <Text style={styles.subtitle}>
             How you appear across PopMap
           </Text>
 
-          <View style={styles.detailGroup}>
-            <Text style={styles.label}>
-              Full Name
-            </Text>
+          <DetailRow
+            label="Full Name"
+            value={fullName}
+          />
 
-            <View style={styles.detailBox}>
-              <Text style={styles.detailText}>
-                {fullName}
-              </Text>
-            </View>
-          </View>
+          <DetailRow
+            label="Email Address"
+            value={email}
+          />
 
-          <View style={styles.detailGroup}>
-            <Text style={styles.label}>
-              Email Address
-            </Text>
-
-            <View style={styles.detailBox}>
-              <Text style={styles.detailText}>
-                {email}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.detailGroup}>
-            <Text style={styles.label}>
-              Account Type
-            </Text>
-
-            <View style={styles.detailBox}>
-              <Text style={styles.detailText}>
-                User
-              </Text>
-            </View>
-          </View>
+          <DetailRow
+            label="Account Type"
+            value="User"
+          />
         </View>
 
         <TouchableOpacity
@@ -124,57 +155,29 @@ export default function ProfileScreen({
       </ScrollView>
 
       <View style={styles.nav}>
-        <TouchableOpacity
-          style={styles.navItem}
+        <NavButton
+          label="Map"
+          icon="map-outline"
           onPress={() => onNavigate("map")}
-        >
-          <Ionicons
-            name="map-outline"
-            size={22}
-            color="#999"
-          />
-          <Text style={styles.navText}>Map</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={styles.navItem}
+        <NavButton
+          label="Search"
+          icon="search-outline"
           onPress={() => onNavigate("search")}
-        >
-          <Ionicons
-            name="search-outline"
-            size={22}
-            color="#999"
-          />
-          <Text style={styles.navText}>Search</Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity
-          style={styles.navItem}
+        <NavButton
+          label="Favorites"
+          icon="heart-outline"
           onPress={() => onNavigate("favorites")}
-        >
-          <Ionicons
-            name="heart-outline"
-            size={22}
-            color="#999"
-          />
-          <Text style={styles.navText}>
-            Favorites
-          </Text>
-        </TouchableOpacity>
+        />
 
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.activeNavIcon}>
-            <Ionicons
-              name="person"
-              size={20}
-              color="#ff6b21"
-            />
-          </View>
-
-          <Text style={styles.activeNavText}>
-            Profile
-          </Text>
-        </TouchableOpacity>
+        <NavButton
+          label="Profile"
+          icon="person"
+          active
+        />
       </View>
     </View>
   );
@@ -184,10 +187,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#fbf8f3",
-  },
-
-  scrollView: {
-    flex: 1,
   },
 
   content: {
@@ -224,20 +223,20 @@ const styles = StyleSheet.create({
   },
 
   editButtonText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 13,
     fontWeight: "700",
   },
 
   profileCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 18,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: "#eeeeee",
+    borderColor: "#eee",
   },
 
   avatar: {
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
   },
 
   avatarText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 24,
     fontWeight: "800",
   },
@@ -265,27 +264,24 @@ const styles = StyleSheet.create({
     color: "#171717",
   },
 
-  roleBadge: {
+  role: {
     alignSelf: "flex-start",
     backgroundColor: "#fff1e8",
+    color: "#ff6b21",
+    fontSize: 11,
+    fontWeight: "700",
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 10,
     marginTop: 6,
   },
 
-  roleText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#ff6b21",
-  },
-
   detailsCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: "#eeeeee",
+    borderColor: "#eee",
   },
 
   sectionTitle: {
@@ -294,9 +290,9 @@ const styles = StyleSheet.create({
     color: "#171717",
   },
 
-  sectionSubtitle: {
+  subtitle: {
     fontSize: 13,
-    color: "#777777",
+    color: "#777",
     marginTop: 4,
     marginBottom: 18,
   },
@@ -308,7 +304,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#777777",
+    color: "#777",
     marginBottom: 6,
     textTransform: "uppercase",
   },
@@ -316,15 +312,14 @@ const styles = StyleSheet.create({
   detailBox: {
     backgroundColor: "#f7f7f7",
     borderWidth: 1,
-    borderColor: "#eeeeee",
+    borderColor: "#eee",
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    padding: 12,
   },
 
   detailText: {
     fontSize: 14,
-    color: "#333333",
+    color: "#333",
   },
 
   logoutButton: {
@@ -339,7 +334,6 @@ const styles = StyleSheet.create({
 
   logoutText: {
     color: "#ff6b21",
-    fontSize: 14,
     fontWeight: "700",
   },
 
@@ -349,9 +343,9 @@ const styles = StyleSheet.create({
 
   nav: {
     height: 78,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: "#eeeeee",
+    borderTopColor: "#eee",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -361,28 +355,18 @@ const styles = StyleSheet.create({
   navItem: {
     width: 70,
     alignItems: "center",
-    justifyContent: "center",
   },
 
   navText: {
     fontSize: 11,
-    color: "#999999",
+    color: "#999",
     marginTop: 4,
-  },
-
-  activeNavIcon: {
-    width: 34,
-    height: 28,
-    borderRadius: 15,
-    backgroundColor: "#fff1e8",
-    justifyContent: "center",
-    alignItems: "center",
   },
 
   activeNavText: {
     fontSize: 11,
-    fontWeight: "700",
     color: "#ff6b21",
-    marginTop: 3,
+    fontWeight: "700",
+    marginTop: 4,
   },
 });
