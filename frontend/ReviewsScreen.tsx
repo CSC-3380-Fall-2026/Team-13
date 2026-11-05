@@ -64,14 +64,15 @@ export default function ReviewsScreen() {
     setCurrentRating(0);
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >    <SafeAreaView
+    return (
+    <SafeAreaView
       style={{ flex: 1, backgroundColor: '#fbf8f3' }}
       edges={['top', 'bottom', 'left', 'right']}
     >
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <Text style={styles.title}>Overall Rating: {overallRating} / 5</Text>
       <Text style={styles.count}>
         {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
@@ -108,8 +109,9 @@ export default function ReviewsScreen() {
           </View>
         )}
         ListEmptyComponent={<Text style={styles.empty}>No reviews yet.</Text>}
-      />
-    </KeyboardAvoidingView>
+            />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
