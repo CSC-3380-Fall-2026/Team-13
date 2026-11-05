@@ -64,8 +64,14 @@ export default function App() {
           style={styles.backButton}
           onPress={() => setCurrentScreen("search")}
         >
-          <Ionicons name="arrow-back" size={20} color="#ffffff" />
-          <Text style={styles.backButtonText}>Search</Text>
+          <Ionicons
+            name="arrow-back"
+            size={20}
+            color="#ffffff"
+          />
+          <Text style={styles.backButtonText}>
+            Search
+          </Text>
         </TouchableOpacity>
       </View>
     );
