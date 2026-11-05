@@ -1,182 +1,186 @@
-import React, { useState } from 'react';
-import {View, Text, TextInput, StyleSheet, TouchableOpacity, Pressable } from 'react-native'; 
-import {useNavigation } from '@react-navigation/native';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 
-export default function LoginScreen() {
-   const navigation = useNavigation<any>(); 
-    const [email, setEmail] = useState<string>(''); 
-    const [password, setPassword] = useState<string>(''); 
-    const[keepSigned,setKeepSigned] =useState(false);
-    const [error, setError] = useState<string>('');
-    const [pass, setPass] = useState<string>(''); 
- 
-    const handleLogin = async () => { 
-       if (!email || !password) { 
-        setError('Please enter both email and password.'); 
-        return; 
-      } 
-      //Login updated
-    try{
-      const response = await fetch ('http://192.168.1.198:5000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({email, password}),
-      });
+interface LoginScreenProps {
+  onNavigate: (screen: string) => void;
+}
 
-      const data = await response.json();
+export default function LoginScreen({
+  onNavigate,
+}: LoginScreenProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-      if (response.ok){
-        setPass('');
-        console.log('Login successful:', data)
-        navigation.navigate('ProfileScreen', {user: data.user});
-
-      }
-      else{
-        setError('');
-        console.log('Login failed')     
-      }
-    } 
-    catch (err){
-      console.error('Network error:', err);
-      setError('Unable to connect to server. Check your connection')
+  function handleLogin() {
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
     }
 
-    } 
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
-  return ( 
-      <View style={styles.container}> 
-          <Text style={styles.header}>Popmap</Text>
-          <Text style={styles.welcome}>Welcome Back</Text>
-          <Text style={styles.title}>Sign in to Popmap</Text> 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
 
-          <Text style={styles.label}>EMAIL ADDRESS </Text>
-          <TextInput style={styles.input}  
-          placeholder="Email" value={email}
-          placeholderTextColor="#999" 
-          autoCapitalize="none" 
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          /> 
-          
-          <Text style={styles.label}>PASSWORD </Text>
-          
-          <TextInput style={styles.input}  
-          placeholder="Password" value={password}  
-          placeholderTextColor="#999" 
-          onChangeText={setPassword} secureTextEntry /> 
-          <Pressable onPress={() => console.log('Forgot password pressed. Redirect to Forgot Password screen.')}>
-            <Text style={styles.clickableText2}>Forgot your password?</Text>
-          </Pressable>
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Sign In</Text>
-          </TouchableOpacity>
-          
-        <TouchableOpacity
-        style={styles.checkBox}
-        activeOpacity={0.8}
-        onPress={()=> setKeepSigned(!keepSigned)
-        }
+    setError("");
+    onNavigate("search");
+  }
 
->   </TouchableOpacity>
+  return (
+    <View style={styles.container}>
+      <Text style={styles.logo}>POPMAP</Text>
 
-          <Pressable onPress={() => console.log('Sign up pressed. Redirect to Sign Up screen.')}>
-            <Text style={styles.clickableText}>Don't have an account? Sign up</Text>
-          </Pressable>
-          {error ? <Text style={styles.error}>{error}</Text> : null}  
-          </View>
-  )
-} 
- 
-const styles = StyleSheet.create({ 
+      <Text style={styles.title}>Welcome back</Text>
 
-  label:{
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#6b7280',
-    letterSpacing: 1,
-    marginBottom: 6, 
+      <Text style={styles.subtitle}>
+        Sign in to continue exploring local businesses.
+      </Text>
+
+      <Text style={styles.label}>Email</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your email"
+        placeholderTextColor="#999"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+
+      <Text style={styles.label}>Password</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your password"
+        placeholderTextColor="#999"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      {error !== "" && (
+        <Text style={styles.error}>{error}</Text>
+      )}
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+      >
+        <Text style={styles.buttonText}>Sign In</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => onNavigate("forgotPassword")}
+      >
+        <Text style={styles.forgotText}>
+          Forgot your password?
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => onNavigate("signup")}
+      >
+        <Text style={styles.signupText}>
+          Don't have an account? Sign up
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fbf8f3",
+    paddingHorizontal: 24,
+    justifyContent: "center",
   },
-  subtitle: { 
-    fontSize: 15, 
-    fontWeight: '500', 
-    color: '#666', 
-    textAlign: 'center', 
-    marginBottom: 5, 
-  },  
-  error: { 
-    color: 'red', 
-    fontWeight: '500',
-    marginBottom: 12, 
-    textAlign: 'center',
-  }, 
-clickableText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#e35706',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
- clickableText2: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#e35706',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
- 
-  input: { 
-    width: 300,
-    maxWidth: 800, 
-    height: 30, 
-    borderColor: '#ccc', 
-    borderWidth: 1, 
-    borderRadius: 5, 
-    paddingHorizontal: 100, 
+
+  logo: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#ff6b21",
+    letterSpacing: 2,
     marginBottom: 12,
-   }, 
-  button: { 
-    backgroundColor: '#e35706', 
-    width: 300,
-    padding: 12, 
-    borderRadius: 4, 
-    marginBottom: 12,
-    alignItems: 'center', 
-  }, 
-  buttonText: { 
-    color: '#FFF',
-    fontSize: 16, 
-    fontWeight: '600', 
-  }, 
-  container: { 
-    flex: 1, 
-    padding: 24, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-  }, 
-  title: { 
-    fontSize: 60, 
-    fontWeight: '700', 
-    color: '#000', 
-    marginBottom: 8, 
-    letterSpacing: -1,
-    textAlign: 'center', 
-    fontFamily: 'Times New Roman', 
-  }, 
-    header: { 
-    fontSize: 24, 
-    fontWeight: '700',
-    marginBottom: 50,
-    top: -50,
-    textAlign: 'left',
-  },  
-    welcome: {
-    fontSize: 25,
-    fontFamily: 'Times New Roman',
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 100,
-    textAlign: 'left',
   },
-}); 
+
+  title: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: "#171717",
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: "#777",
+    marginTop: 6,
+    marginBottom: 28,
+  },
+
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#444",
+    marginBottom: 6,
+  },
+
+  input: {
+    height: 48,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#dddddd",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    fontSize: 15,
+    color: "#171717",
+  },
+
+  error: {
+    color: "#c62828",
+    fontSize: 13,
+    marginBottom: 12,
+  },
+
+  button: {
+    height: 48,
+    backgroundColor: "#151515",
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  forgotText: {
+    textAlign: "center",
+    color: "#ff6b21",
+    marginTop: 18,
+    fontSize: 14,
+  },
+
+  signupText: {
+    textAlign: "center",
+    color: "#ff6b21",
+    marginTop: 12,
+    fontSize: 14,
+  },
+});

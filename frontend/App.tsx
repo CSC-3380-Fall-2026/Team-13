@@ -11,9 +11,11 @@ import SearchScreen from "./src/screens/SearchScreen";
 import BusinessDetailsScreen from "./src/screens/BusinessDetailsScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
 import MapScreen from "./src/screens/MapScreen";
+import LoginScreen from "./src/screens/LoginScreen";
+import SignUpScreen from "./src/screens/SignUpScreen";
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState("search");
+  const [currentScreen, setCurrentScreen] = useState("login");
 
   const [selectedBusiness, setSelectedBusiness] =
     useState("Juniper & Grain");
@@ -34,6 +36,23 @@ export default function App() {
       setFavorites([...favorites, businessName]);
     }
   }
+  if (currentScreen === "login") {
+    return (
+      <LoginScreen
+        onNavigate={setCurrentScreen}
+      />
+    );
+  }
+
+  if (currentScreen === "signup") {
+  return (
+    <SignUpScreen
+      onNavigate={setCurrentScreen}
+    />
+  );
+}
+
+
 
   if (currentScreen === "details") {
     return (
