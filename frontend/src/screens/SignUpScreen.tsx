@@ -10,10 +10,16 @@ import {
 
 interface SignUpScreenProps {
   onNavigate: (screen: string) => void;
+  onSignUp: (
+    firstName: string,
+    lastName: string,
+    email: string
+  ) => void;
 }
 
 export default function SignUpScreen({
   onNavigate,
+  onSignUp,
 }: SignUpScreenProps) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -51,13 +57,7 @@ export default function SignUpScreen({
 
     setError("");
 
-    console.log("New account:", {
-      firstName,
-      lastName,
-      email,
-    });
-
-    onNavigate("search");
+    onSignUp(firstName, lastName, email);
   }
 
   return (
