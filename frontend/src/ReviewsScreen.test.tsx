@@ -30,7 +30,7 @@ const submitReview = async (rating: string, comment: string) => {
 };
 
 describe('ReviewsScreen review logic', () => {
-  let alertSpy: jest.SpyInstance;
+  let alertSpy: jest.Spied<typeof Alert.alert>;
 
   beforeEach(async () => {
     // mockImplementation keeps the real native alert from firing during tests
