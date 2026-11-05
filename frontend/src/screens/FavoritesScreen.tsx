@@ -240,6 +240,34 @@ export default function FavoritesScreen({
         </TouchableOpacity>
       </View>
     </View>
+    businesses: {
+        name: string;
+        category: string;
+        distance: string;
+    }[];
+    onRemove: (name: string) => void;
+}
+
+export default function FavoritesScreen({ businesses, onRemove }: FavoritesScreenProps) {
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Favorites</Text>
+            {businesses.length === 0 ? (
+        <Text style={styles.subtitle}>Your favorite items will appear here.</Text>
+      ) : (
+        businesses.map((business) => (
+          <View key={business.name} style={styles.business}>
+            <Text style={styles.businessName}>{business.name}</Text>
+            <Text style={styles.subtitle}>
+              {business.category} • {business.distance}
+            </Text>
+            <TouchableOpacity onPress={() => onRemove(business.name)}>
+              <Text style={styles.remove}>Remove favorite</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+    </ScrollView>
   );
 }
 
