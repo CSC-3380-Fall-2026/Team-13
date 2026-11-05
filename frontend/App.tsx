@@ -12,6 +12,7 @@ import BusinessDetailsScreen from "./src/screens/BusinessDetailsScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
 import MapScreen from "./src/screens/MapScreen";
 import LoginScreen from "./src/screens/LoginScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 
 export default function App() {
@@ -21,6 +22,10 @@ export default function App() {
     useState("Juniper & Grain");
 
   const [favorites, setFavorites] = useState<string[]>([]);
+
+  const [userFirstName, setUserFirstName] = useState("");
+  const [userLastName, setUserLastName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   function openBusiness(businessName: string) {
     setSelectedBusiness(businessName);
@@ -36,6 +41,19 @@ export default function App() {
       setFavorites([...favorites, businessName]);
     }
   }
+
+  function handleSignUp(
+    firstName: string,
+    lastName: string,
+    email: string
+  ) {
+    setUserFirstName(firstName);
+    setUserLastName(lastName);
+    setUserEmail(email);
+
+    setCurrentScreen("search");
+  }
+
   if (currentScreen === "login") {
     return (
       <LoginScreen
@@ -45,14 +63,24 @@ export default function App() {
   }
 
   if (currentScreen === "signup") {
-  return (
-    <SignUpScreen
-      onNavigate={setCurrentScreen}
-    />
-  );
-}
+    return (
+      <SignUpScreen
+        onNavigate={setCurrentScreen}
+        onSignUp={handleSignUp}
+      />
+    );
+  }
 
-
+  if (currentScreen === "profile") {
+    return (
+      <ProfileScreen
+        firstName={userFirstName}
+        lastName={userLastName}
+        email={userEmail}
+        onNavigate={setCurrentScreen}
+      />
+    );
+  }
 
   if (currentScreen === "details") {
     return (
@@ -88,6 +116,7 @@ export default function App() {
             size={20}
             color="#ffffff"
           />
+
           <Text style={styles.backButtonText}>
             Search
           </Text>
