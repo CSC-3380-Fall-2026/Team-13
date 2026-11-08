@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import FavoritesScreen from "./FavoritesScreen";
+import EventsScreen from "./EventsScreen";
 
 
 export default function SearchScreen() {
@@ -98,7 +99,9 @@ export default function SearchScreen() {
 
     return (
     <View style={styles.container}>
-      {activeTab === "Favorites" ? (
+      {activeTab === "Events" ? (
+       <EventsScreen />
+      ) : activeTab === "Favorites" ? (
         <FavoritesScreen
           businesses={businesses.filter((business) =>
             favorites.includes(business.name)
@@ -278,7 +281,7 @@ export default function SearchScreen() {
           </Text>
         </TouchableOpacity>
 
-                <TouchableOpacity
+         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setActiveTab("Favorites")}
         >
@@ -291,7 +294,23 @@ export default function SearchScreen() {
             Favorites
           </Text>
         </TouchableOpacity>
+       <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => setActiveTab("Events")}
+        >
+        <Ionicons
+        name="calendar-outline"
+        size={22}
+        color={activeTab === "Events" ? "#ff6b21" : "#aaa"}
+        />
 
+        <Text
+        style={activeTab === "Events" ? styles.activeNavText: styles.navText
+    }
+  >
+    Events
+  </Text>
+</TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="person-outline" size={22} color="#aaa" />
           <Text style={styles.navText}>Profile</Text>
