@@ -1,4 +1,4 @@
-package com.popmap.backend; // ⚠️ Update this to match your actual package name at the top!
+package com.popmap.backend; 
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
