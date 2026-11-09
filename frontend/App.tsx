@@ -1,5 +1,3 @@
-import { createElement } from "react";
-// @ts-ignore TS6142: JSX is configured by the frontend build toolchain.
 import { useState } from "react";
 import {
   View,
@@ -16,10 +14,9 @@ import MapScreen from "./src/screens/MapScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
+import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
 
 export default function App() {
-  return createElement(SearchScreen);
-}
   const [currentScreen, setCurrentScreen] = useState("login");
 
   const [selectedBusiness, setSelectedBusiness] =
@@ -55,7 +52,7 @@ export default function App() {
     setUserLastName(lastName);
     setUserEmail(email);
 
-    setCurrentScreen("search");
+    setCurrentScreen("submit");
   }
 
   if (currentScreen === "login") {
@@ -102,6 +99,14 @@ export default function App() {
         onToggleFavorite={toggleFavorite}
         onViewBusiness={openBusiness}
         onNavigate={setCurrentScreen}
+      />
+    );
+  }
+
+  if (currentScreen === "submit") {
+    return (
+      <SubmitBusinessScreen 
+        onNavigate={setCurrentScreen} 
       />
     );
   }
