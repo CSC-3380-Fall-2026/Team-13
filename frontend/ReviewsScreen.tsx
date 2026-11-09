@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Review {
   id: number;
@@ -34,36 +35,53 @@ const StarInput = ({
 
 export default function ReviewsScreen() {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [currentRating, setCurrentRating] = useState(5);
+  const [currentRating, setCurrentRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [error, setError] = useState('');
 
   const overallRating =
     reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : '0.0';
 
-  const handleSubmit = () => {
-    if (!reviewText.trim()) return;
+    const handleSubmit = () => {
+    if (!Number.isInteger(currentRating) || currentRating < 1 || currentRating > 5) {
+      setError('Rate your experience!');
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      setError('Any comments or suggestions?');
+      return;
+    }
+
+    setError('');
     setReviews((prev) => [
       { id: Date.now(), rating: currentRating, text: reviewText.trim() },
       ...prev,
     ]);
     setReviewText('');
-    setCurrentRating(5);
+    setCurrentRating(0);
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fbf8f3' }}
+      edges={['top', 'bottom', 'left', 'right']}
     >
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <Text style={styles.title}>Overall Rating: {overallRating} / 5</Text>
       <Text style={styles.count}>
         {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
       </Text>
 
+      <Text style={styles.label}>Your rating (1-5 stars)</Text>
       <StarInput value={currentRating} onChange={setCurrentRating} />
 
+      <Text style={styles.label}>Your comment</Text>
       <TextInput
         style={styles.input}
         placeholder="Leave your review..."
@@ -72,6 +90,11 @@ export default function ReviewsScreen() {
         multiline
         numberOfLines={4}
       />
+            {error !== '' && (
+        <Text style={styles.error} accessibilityRole="alert">
+          {error}
+        </Text>
+      )}
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit Review</Text>
       </TouchableOpacity>
@@ -86,19 +109,21 @@ export default function ReviewsScreen() {
           </View>
         )}
         ListEmptyComponent={<Text style={styles.empty}>No reviews yet.</Text>}
-      />
-    </KeyboardAvoidingView>
+            />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1, padding: 16, backgroundColor: '#fbf8f3' },
   title: { fontSize: 20, fontWeight: '700' },
   count: { color: '#666', marginBottom: 12 },
   starRow: { flexDirection: 'row', marginBottom: 12 },
   star: { fontSize: 32, color: '#ccc', marginRight: 4 },
   starActive: { color: '#f5b301' },
   input: {
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
@@ -107,7 +132,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#191716',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -117,4 +142,6 @@ const styles = StyleSheet.create({
   review: { borderBottomWidth: 1, borderBottomColor: '#eee', paddingVertical: 10 },
   reviewStars: { color: '#f5b301', fontSize: 16 },
   empty: { textAlign: 'center', color: '#888', marginTop: 20 },
+  label: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
+  error: { color: '#b42318', marginTop: 8 },
 });
