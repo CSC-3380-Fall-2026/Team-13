@@ -1,3 +1,5 @@
+import { createElement } from "react";
+// @ts-ignore TS6142: JSX is configured by the frontend build toolchain.
 import { useState } from "react";
 import {
   View,
@@ -16,6 +18,8 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 
 export default function App() {
+  return createElement(SearchScreen);
+}
   const [currentScreen, setCurrentScreen] = useState("login");
 
   const [selectedBusiness, setSelectedBusiness] =

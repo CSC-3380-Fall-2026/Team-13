@@ -8,6 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import FavoritesScreen from "./FavoritesScreen";
+import EventsScreen from "./EventsScreen";
+
 
 interface SearchScreenProps {
   onViewBusiness: (businessName: string) => void;
@@ -32,6 +35,8 @@ export default function SearchScreen({
 }: SearchScreenProps) {
   const [searchText, setSearchText] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [favorites, setFavorites] = useState(["North & Pine"]);
+  const [activeTab, setActiveTab] = useState("Search");
 
   const businesses: Business[] = [
     {
@@ -110,6 +115,18 @@ export default function SearchScreen({
     return "sparkles-outline";
   }
 
+    return (
+    <View style={styles.container}>
+      {activeTab === "Events" ? (
+       <EventsScreen />
+      ) : activeTab === "Favorites" ? (
+        <FavoritesScreen
+          businesses={businesses.filter((business) =>
+            favorites.includes(business.name)
+          )}
+          onRemove={toggleFavorite}
+        />
+      ) : (
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -265,6 +282,7 @@ export default function SearchScreen({
 
         <View style={styles.bottomSpace} />
       </ScrollView>
+      )}
 
       <View style={styles.nav}>
         <TouchableOpacity
@@ -279,6 +297,18 @@ export default function SearchScreen({
           <Text style={styles.navText}>Map</Text>
         </TouchableOpacity>
 
+                <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab("Search")}
+        >
+          <View style={activeTab === "Search" && styles.activeNavIcon}>
+            <Ionicons
+              name="search"
+              size={20}
+              color={activeTab === "Search" ? "#ff6b21" : "#aaa"}
+            />
+          </View>
+          <Text style={activeTab === "Search" ? styles.activeNavText : styles.navText}>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => onNavigate("search")}
@@ -296,6 +326,38 @@ export default function SearchScreen({
           </Text>
         </TouchableOpacity>
 
+         <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setActiveTab("Favorites")}
+        >
+          <Ionicons
+            name="heart"
+            size={22}
+            color={activeTab === "Favorites" ? "#ff6b21" : "#aaa"}
+          />
+          <Text style={activeTab === "Favorites" ? styles.activeNavText : styles.navText}>
+            Favorites
+          </Text>
+        </TouchableOpacity>
+       <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => setActiveTab("Events")}
+        >
+        <Ionicons
+        name="calendar-outline"
+        size={22}
+        color={activeTab === "Events" ? "#ff6b21" : "#aaa"}
+        />
+
+        <Text
+        style={activeTab === "Events" ? styles.activeNavText: styles.navText
+    }
+  >
+    Events
+  </Text>
+</TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="person-outline" size={22} color="#aaa" />
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => onNavigate("favorites")}
