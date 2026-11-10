@@ -9,35 +9,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 interface FavoritesScreenProps {
-    businesses: {
-        name: string;
-        category: string;
-        distance: string;
-    }[];
-    onRemove: (name: string) => void;
-}
-
-export default function FavoritesScreen({ businesses, onRemove }: FavoritesScreenProps) {
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Favorites</Text>
-            {businesses.length === 0 ? (
-        <Text style={styles.subtitle}>Your favorite items will appear here.</Text>
-      ) : (
-        businesses.map((business) => (
-          <View key={business.name} style={styles.business}>
-            <Text style={styles.businessName}>{business.name}</Text>
-            <Text style={styles.subtitle}>
-              {business.category} • {business.distance}
-            </Text>
-            <TouchableOpacity onPress={() => onRemove(business.name)}>
-              <Text style={styles.remove}>Remove favorite</Text>
-            </TouchableOpacity>
-          </View>
-        ))
-      )}
-    </ScrollView>
-  );
   favorites: string[];
   onToggleFavorite: (businessName: string) => void;
   onViewBusiness: (businessName: string) => void;
@@ -89,8 +60,8 @@ export default function FavoritesScreen({
     },
   ];
 
-  const favoriteBusinesses = businesses.filter(
-    (business) => favorites.includes(business.name)
+  const favoriteBusinesses = businesses.filter((business) =>
+    favorites.includes(business.name)
   );
 
   return (
@@ -110,15 +81,9 @@ export default function FavoritesScreen({
 
         {favoriteBusinesses.length === 0 && (
           <View style={styles.emptyContainer}>
-            <Ionicons
-              name="heart-outline"
-              size={48}
-              color="#ff6b21"
-            />
+            <Ionicons name="heart-outline" size={48} color="#ff6b21" />
 
-            <Text style={styles.emptyTitle}>
-              No favorites yet
-            </Text>
+            <Text style={styles.emptyTitle}>No favorites yet</Text>
 
             <Text style={styles.emptyText}>
               Tap the heart on a business to save it here.
@@ -128,18 +93,13 @@ export default function FavoritesScreen({
               style={styles.exploreButton}
               onPress={() => onNavigate("search")}
             >
-              <Text style={styles.exploreButtonText}>
-                Explore Businesses
-              </Text>
+              <Text style={styles.exploreButtonText}>Explore Businesses</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {favoriteBusinesses.map((business) => (
-          <View
-            style={styles.businessCard}
-            key={business.name}
-          >
+          <View style={styles.businessCard} key={business.name}>
             <View style={styles.cardTop}>
               <View style={styles.businessInfo}>
                 <View style={styles.iconBox}>
@@ -157,20 +117,14 @@ export default function FavoritesScreen({
                 </View>
 
                 <View style={styles.textContainer}>
-                  <Text style={styles.businessName}>
-                    {business.name}
-                  </Text>
+                  <Text style={styles.businessName}>{business.name}</Text>
 
                   <Text style={styles.businessDetails}>
                     {business.category} • {business.distance}
                   </Text>
 
                   <View style={styles.ratingRow}>
-                    <Ionicons
-                      name="star"
-                      size={15}
-                      color="#ff6b21"
-                    />
+                    <Ionicons name="star" size={15} color="#ff6b21" />
 
                     <Text style={styles.rating}>
                       {business.rating} ({business.reviews})
@@ -179,34 +133,18 @@ export default function FavoritesScreen({
                 </View>
               </View>
 
-              <TouchableOpacity
-                onPress={() =>
-                  onToggleFavorite(business.name)
-                }
-              >
-                <Ionicons
-                  name="heart"
-                  size={24}
-                  color="#ff6b21"
-                />
+              <TouchableOpacity onPress={() => onToggleFavorite(business.name)}>
+                <Ionicons name="heart" size={24} color="#ff6b21" />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
               style={styles.viewButton}
-              onPress={() =>
-                onViewBusiness(business.name)
-              }
+              onPress={() => onViewBusiness(business.name)}
             >
-              <Text style={styles.viewButtonText}>
-                View Business
-              </Text>
+              <Text style={styles.viewButtonText}>View Business</Text>
 
-              <Ionicons
-                name="arrow-forward"
-                size={16}
-                color="#ffffff"
-              />
+              <Ionicons name="arrow-forward" size={16} color="#ffffff" />
             </TouchableOpacity>
           </View>
         ))}
@@ -219,11 +157,7 @@ export default function FavoritesScreen({
           style={styles.navItem}
           onPress={() => onNavigate("map")}
         >
-          <Ionicons
-            name="map-outline"
-            size={22}
-            color="#999"
-          />
+          <Ionicons name="map-outline" size={22} color="#999" />
           <Text style={styles.navText}>Map</Text>
         </TouchableOpacity>
 
@@ -231,11 +165,7 @@ export default function FavoritesScreen({
           style={styles.navItem}
           onPress={() => onNavigate("search")}
         >
-          <Ionicons
-            name="search-outline"
-            size={22}
-            color="#999"
-          />
+          <Ionicons name="search-outline" size={22} color="#999" />
           <Text style={styles.navText}>Search</Text>
         </TouchableOpacity>
 
@@ -244,32 +174,22 @@ export default function FavoritesScreen({
           onPress={() => onNavigate("favorites")}
         >
           <View style={styles.activeNavIcon}>
-            <Ionicons
-              name="heart"
-              size={20}
-              color="#ff6b21"
-            />
+            <Ionicons name="heart" size={20} color="#ff6b21" />
           </View>
 
-          <Text style={styles.activeNavText}>
-            Favorites
-          </Text>
+          <Text style={styles.activeNavText}>Favorites</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => onNavigate("profile")}
         >
-          <Ionicons
-            name="person-outline"
-            size={22}
-            color="#999"
-          />
+          <Ionicons name="person-outline" size={22} color="#999" />
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
     </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
@@ -277,16 +197,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fbf8f3",
   },
-
   scrollView: {
     flex: 1,
   },
-
   content: {
     paddingHorizontal: 20,
     paddingTop: 55,
   },
-
   logo: {
     fontSize: 13,
     fontWeight: "800",
@@ -294,53 +211,28 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: 8,
   },
-
   heading: {
     fontSize: 28,
     fontWeight: "800",
     color: "#171717",
   },
-
   subtitle: {
     fontSize: 14,
     color: "#777777",
     marginTop: 5,
     marginBottom: 24,
-    },
-  business: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 17,
-    padding: 14,
-    marginBottom: 11,
-    },
-    businessName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#222',
-    marginBottom: 6,
-    },
-    remove: {
-    color: '#ff3b67',
-    fontWeight: '600',
-    paddingVertical: 8,
-    },
-  });
   },
-
   emptyContainer: {
     marginTop: 70,
     alignItems: "center",
     paddingHorizontal: 30,
   },
-
   emptyTitle: {
     fontSize: 20,
     fontWeight: "800",
     color: "#171717",
     marginTop: 14,
   },
-
   emptyText: {
     fontSize: 14,
     color: "#777777",
@@ -348,7 +240,6 @@ const styles = StyleSheet.create({
     marginTop: 7,
     lineHeight: 20,
   },
-
   exploreButton: {
     backgroundColor: "#151515",
     borderRadius: 22,
@@ -356,12 +247,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 20,
   },
-
   exploreButtonText: {
     color: "#ffffff",
     fontWeight: "700",
   },
-
   businessCard: {
     backgroundColor: "#ffffff",
     borderRadius: 17,
@@ -370,18 +259,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eeeeee",
   },
-
   cardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-
   businessInfo: {
     flexDirection: "row",
     flex: 1,
   },
-
   iconBox: {
     width: 48,
     height: 48,
@@ -390,37 +276,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   textContainer: {
     marginLeft: 13,
     flex: 1,
   },
-
   businessName: {
     fontSize: 17,
     fontWeight: "800",
     color: "#171717",
   },
-
   businessDetails: {
     marginTop: 3,
     fontSize: 13,
     color: "#777777",
   },
-
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 6,
   },
-
   rating: {
     marginLeft: 4,
     fontSize: 13,
     fontWeight: "600",
     color: "#444444",
   },
-
   viewButton: {
     height: 39,
     backgroundColor: "#151515",
@@ -430,18 +310,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   viewButtonText: {
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
     marginRight: 6,
   },
-
   bottomSpace: {
     height: 90,
   },
-
   nav: {
     height: 78,
     backgroundColor: "#ffffff",
@@ -452,19 +329,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 8,
   },
-
   navItem: {
     width: 70,
     alignItems: "center",
     justifyContent: "center",
   },
-
   navText: {
     fontSize: 11,
     color: "#999999",
     marginTop: 4,
   },
-
   activeNavIcon: {
     width: 34,
     height: 28,
@@ -473,7 +347,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   activeNavText: {
     fontSize: 11,
     fontWeight: "700",
