@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,6 +14,7 @@ interface ProfileScreenProps {
   lastName: string;
   email: string;
   onNavigate: (screen: string) => void;
+  onLogout: () => void;
 }
 
 interface DetailRowProps {
@@ -75,12 +77,14 @@ export default function ProfileScreen({
   lastName,
   email,
   onNavigate,
+  onLogout,
 }: ProfileScreenProps) {
   const fullName = `${firstName} ${lastName}`;
 
-  const initials =
-    firstName.charAt(0).toUpperCase() +
-    lastName.charAt(0).toUpperCase();
+  // Added a fallback just in case firstName or lastName is empty
+  const initials = 
+    (firstName?.charAt(0) || "") + 
+    (lastName?.charAt(0) || "");
 
   return (
     <View style={styles.screen}>
@@ -104,7 +108,7 @@ export default function ProfileScreen({
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {initials}
+              {initials.toUpperCase()}
             </Text>
           </View>
 
@@ -144,7 +148,12 @@ export default function ProfileScreen({
 
         <TouchableOpacity
           style={styles.logoutButton}
-          onPress={() => onNavigate("login")}
+          onPress={() => {
+            Alert.alert("Log Out", "Are you sure you want to log out?", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Log Out", style: "destructive", onPress: onLogout }
+            ]);
+          }}
         >
           <Text style={styles.logoutText}>
             Log Out
@@ -172,6 +181,12 @@ export default function ProfileScreen({
           icon="heart-outline"
           onPress={() => onNavigate("favorites")}
         />
+        
+        <NavButton
+          label="Events"
+          icon="calendar-outline"
+          onPress={() => onNavigate("events")}
+        />
 
         <NavButton
           label="Profile"
@@ -188,19 +203,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fbf8f3",
   },
-
   content: {
     paddingHorizontal: 20,
     paddingTop: 55,
   },
-
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
   },
-
   logo: {
     fontSize: 13,
     fontWeight: "800",
@@ -208,26 +220,22 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: 5,
   },
-
   heading: {
     fontSize: 28,
     fontWeight: "800",
     color: "#171717",
   },
-
   editButton: {
     backgroundColor: "#ff6b21",
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 18,
   },
-
   editButtonText: {
     color: "#fff",
     fontSize: 13,
     fontWeight: "700",
   },
-
   profileCard: {
     backgroundColor: "#fff",
     borderRadius: 18,
@@ -238,7 +246,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
-
   avatar: {
     width: 64,
     height: 64,
@@ -247,23 +254,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   avatarText: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "800",
   },
-
   profileInfo: {
     marginLeft: 14,
   },
-
   name: {
     fontSize: 20,
     fontWeight: "800",
     color: "#171717",
   },
-
   role: {
     alignSelf: "flex-start",
     backgroundColor: "#fff1e8",
@@ -275,7 +278,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 6,
   },
-
   detailsCard: {
     backgroundColor: "#fff",
     borderRadius: 18,
@@ -283,24 +285,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
-
   sectionTitle: {
     fontSize: 19,
     fontWeight: "800",
     color: "#171717",
   },
-
   subtitle: {
     fontSize: 13,
     color: "#777",
     marginTop: 4,
     marginBottom: 18,
   },
-
   detailGroup: {
     marginBottom: 14,
   },
-
   label: {
     fontSize: 11,
     fontWeight: "700",
@@ -308,7 +306,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textTransform: "uppercase",
   },
-
   detailBox: {
     backgroundColor: "#f7f7f7",
     borderWidth: 1,
@@ -316,12 +313,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
   },
-
   detailText: {
     fontSize: 14,
     color: "#333",
   },
-
   logoutButton: {
     height: 46,
     borderWidth: 1,
@@ -331,17 +326,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-
   logoutText: {
     color: "#ff6b21",
     fontWeight: "700",
   },
-
   bottomSpace: {
     height: 95,
   },
-
   nav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: 78,
     backgroundColor: "#fff",
     borderTopWidth: 1,
@@ -351,18 +347,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 8,
   },
-
   navItem: {
     width: 70,
     alignItems: "center",
   },
-
   navText: {
     fontSize: 11,
     color: "#999",
     marginTop: 4,
   },
-
   activeNavText: {
     fontSize: 11,
     color: "#ff6b21",
