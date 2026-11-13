@@ -18,6 +18,9 @@ import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
+  const handleLogout = () => {
+    setCurrentScreen("login");
+  };
 
   const [selectedBusiness, setSelectedBusiness] =
     useState("Juniper & Grain");
@@ -79,6 +82,7 @@ export default function App() {
         lastName={userLastName}
         email={userEmail}
         onNavigate={setCurrentScreen}
+        onLogout={handleLogout}
       />
     );
   }
