@@ -35,7 +35,7 @@ export default function LoginScreen({
     }
 
     setError("");
-    onNavigate("search");
+    onNavigate("submit");
   }
 
   return (
