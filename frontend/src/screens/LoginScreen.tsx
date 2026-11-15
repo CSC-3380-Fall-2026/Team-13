@@ -6,19 +6,22 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { loginUser, AuthUser } from "../services/authApi";
 
 interface LoginScreenProps {
   onNavigate: (screen: string) => void;
+  onLogin: (user: AuthUser) => void;
 }
 
 export default function LoginScreen({
   onNavigate,
+  onLogin,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleLogin() {
+  async function handleLogin() {
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
@@ -34,8 +37,19 @@ export default function LoginScreen({
       return;
     }
 
-    setError("");
-    onNavigate("submit");
+    try {
+      setError("");
+
+      const user = await loginUser(email, password);
+
+      onLogin(user);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Unable to sign in.");
+      }
+    }
   }
 
   return (

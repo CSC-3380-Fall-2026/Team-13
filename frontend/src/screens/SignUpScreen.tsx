@@ -7,14 +7,11 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import { signUpUser, AuthUser } from "../services/authApi";
 
 interface SignUpScreenProps {
   onNavigate: (screen: string) => void;
-  onSignUp: (
-    firstName: string,
-    lastName: string,
-    email: string
-  ) => void;
+  onSignUp: (user: AuthUser) => void;
 }
 
 export default function SignUpScreen({
@@ -28,7 +25,7 @@ export default function SignUpScreen({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSignUp() {
+  async function handleSignUp() {
     if (
       !firstName ||
       !lastName ||
@@ -55,9 +52,24 @@ export default function SignUpScreen({
       return;
     }
 
-    setError("");
+    try {
+      setError("");
 
-    onSignUp(firstName, lastName, email);
+      const user = await signUpUser(
+        firstName,
+        lastName,
+        email,
+        password
+      );
+
+      onSignUp(user);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Unable to create account.");
+      }
+    }
   }
 
   return (

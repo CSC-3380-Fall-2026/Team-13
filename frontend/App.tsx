@@ -15,6 +15,8 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
+import EditProfileScreen from "./src/screens/EditProfileScreen";
+import { AuthUser } from "./src/services/authApi";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
@@ -24,9 +26,8 @@ export default function App() {
 
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  const [userFirstName, setUserFirstName] = useState("");
-  const [userLastName, setUserLastName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  const [currentUser, setCurrentUser] =
+    useState<AuthUser | null>(null);
 
   function openBusiness(businessName: string) {
     setSelectedBusiness(businessName);
@@ -43,22 +44,27 @@ export default function App() {
     }
   }
 
-  function handleSignUp(
-    firstName: string,
-    lastName: string,
-    email: string
-  ) {
-    setUserFirstName(firstName);
-    setUserLastName(lastName);
-    setUserEmail(email);
+  function handleAuth(user: AuthUser) {
+    setCurrentUser(user);
+    setCurrentScreen("search");
+  }
 
-    setCurrentScreen("submit");
+  function handleProfileUpdate(user: AuthUser) {
+    setCurrentUser(user);
+    setCurrentScreen("profile");
+  }
+
+  function handleLogout() {
+    setCurrentUser(null);
+    setFavorites([]);
+    setCurrentScreen("login");
   }
 
   if (currentScreen === "login") {
     return (
       <LoginScreen
         onNavigate={setCurrentScreen}
+        onLogin={handleAuth}
       />
     );
   }
@@ -67,18 +73,52 @@ export default function App() {
     return (
       <SignUpScreen
         onNavigate={setCurrentScreen}
-        onSignUp={handleSignUp}
+        onSignUp={handleAuth}
+      />
+    );
+  }
+
+  if (currentScreen === "editProfile") {
+    if (!currentUser) {
+      return (
+        <LoginScreen
+          onNavigate={setCurrentScreen}
+          onLogin={handleAuth}
+        />
+      );
+    }
+
+    return (
+      <EditProfileScreen
+        user={currentUser}
+        onSave={handleProfileUpdate}
+        onCancel={() => setCurrentScreen("profile")}
       />
     );
   }
 
   if (currentScreen === "profile") {
+    if (!currentUser) {
+      return (
+        <LoginScreen
+          onNavigate={setCurrentScreen}
+          onLogin={handleAuth}
+        />
+      );
+    }
+
     return (
       <ProfileScreen
-        firstName={userFirstName}
-        lastName={userLastName}
-        email={userEmail}
-        onNavigate={setCurrentScreen}
+        firstName={currentUser.firstName}
+        lastName={currentUser.lastName}
+        email={currentUser.email}
+        onNavigate={(screen) => {
+          if (screen === "login") {
+            handleLogout();
+          } else {
+            setCurrentScreen(screen);
+          }
+        }}
       />
     );
   }
@@ -105,8 +145,8 @@ export default function App() {
 
   if (currentScreen === "submit") {
     return (
-      <SubmitBusinessScreen 
-        onNavigate={setCurrentScreen} 
+      <SubmitBusinessScreen
+        onNavigate={setCurrentScreen}
       />
     );
   }
