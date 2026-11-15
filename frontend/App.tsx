@@ -15,6 +15,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
+import EventsScreen from "./src/screens/EventsScreen";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
@@ -52,7 +53,7 @@ export default function App() {
     setUserLastName(lastName);
     setUserEmail(email);
 
-    setCurrentScreen("submit");
+    setCurrentScreen("search");
   }
 
   if (currentScreen === "login") {
@@ -92,6 +93,8 @@ export default function App() {
     );
   }
 
+
+
   if (currentScreen === "favorites") {
     return (
       <FavoritesScreen
@@ -102,14 +105,13 @@ export default function App() {
       />
     );
   }
-
-  if (currentScreen === "submit") {
-    return (
-      <SubmitBusinessScreen 
-        onNavigate={setCurrentScreen} 
-      />
-    );
-  }
+if (currentScreen === "events") {
+  return (
+    <EventsScreen
+      onNavigate={setCurrentScreen }
+    />
+  );
+}
 
   if (currentScreen === "map") {
     return (
