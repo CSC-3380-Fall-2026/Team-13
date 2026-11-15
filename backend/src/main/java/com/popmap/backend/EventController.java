@@ -1,9 +1,5 @@
-EventController
+package com.popmap.backend;
 
-package com.popmap.controller;
-
-import com.popmap.model.Event;
-import com.popmap.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
