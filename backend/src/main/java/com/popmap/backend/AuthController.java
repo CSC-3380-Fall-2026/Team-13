@@ -3,7 +3,9 @@ package com.popmap.backend;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,6 +61,30 @@ public class AuthController {
         } catch (IllegalArgumentException error) {
             return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .body(error.getMessage());
+        }
+    }
+
+    @PutMapping("/profile/{userId}")
+    public ResponseEntity<?> updateProfile(
+        @PathVariable Long userId,
+        @RequestBody UpdateProfileRequest request
+    ) {
+        try {
+            User user = authService.updateProfile(
+                userId,
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail()
+            );
+
+            return ResponseEntity.ok(
+                new AuthResponse(user)
+            );
+
+        } catch (IllegalArgumentException error) {
+            return ResponseEntity
+                .badRequest()
                 .body(error.getMessage());
         }
     }
