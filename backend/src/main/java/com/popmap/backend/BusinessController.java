@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/businesses")
 public class BusinessController {
 
+    private final BusinessRepository businessRepository;
+
+    public BusinessController(BusinessRepository businessRepository) {
+        this.businessRepository = businessRepository;
+    }
+
     @GetMapping
     public List<Business> getAllBusinesses() {
-        // Replace with actual business retrieval logic
-        return List.of(
-                new Business("1", "Business 1", "Category 1"),
-                new Business("2", "Business 2", "Category 2")
-        );
+        return businessRepository.findAll();
     }
 }

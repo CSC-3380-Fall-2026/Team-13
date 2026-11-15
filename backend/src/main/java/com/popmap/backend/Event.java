@@ -1,5 +1,4 @@
-Event
-package com.popmap.model;
+package com.popmap.backend;
 
 import jakarta.persistence.*;
 
