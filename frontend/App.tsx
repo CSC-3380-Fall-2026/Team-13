@@ -15,7 +15,10 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
+<<<<<<< HEAD
 import EventsScreen from "./src/screens/EventsScreen";
+=======
+>>>>>>> 68c07875fb21f245c74b80ab783e9610a4f82b76
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
@@ -53,7 +56,7 @@ export default function App() {
     setUserLastName(lastName);
     setUserEmail(email);
 
-    setCurrentScreen("search");
+    setCurrentScreen("submit");
   }
 
   if (currentScreen === "login") {
@@ -112,6 +115,14 @@ if (currentScreen === "events") {
     />
   );
 }
+
+  if (currentScreen === "submit") {
+    return (
+      <SubmitBusinessScreen 
+        onNavigate={setCurrentScreen} 
+      />
+    );
+  }
 
   if (currentScreen === "map") {
     return (
