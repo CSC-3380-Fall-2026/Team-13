@@ -95,8 +95,8 @@ export default function ProfileScreen({
           </View>
 
           <TouchableOpacity
-             style={styles.editButton}
-             onPress={() => onNavigate("editProfile")}
+            style={styles.editButton}
+            onPress={() => onNavigate("editProfile")}
           >
             <Text style={styles.editButtonText}>
               Edit Profile
@@ -144,6 +144,21 @@ export default function ProfileScreen({
             value="User"
           />
         </View>
+
+        <TouchableOpacity
+          style={styles.submitBusinessButton}
+          onPress={() => onNavigate("submit")}
+        >
+          <Ionicons
+            name="add-circle-outline"
+            size={20}
+            color="#ffffff"
+          />
+
+          <Text style={styles.submitBusinessText}>
+            Submit a Business
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.logoutButton}
@@ -325,6 +340,22 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
+  submitBusinessButton: {
+    height: 46,
+    backgroundColor: "#151515",
+    borderRadius: 23,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    marginTop: 20,
+  },
+
+  submitBusinessText: {
+    color: "#ffffff",
+    fontWeight: "700",
+    marginLeft: 7,
+  },
+
   logoutButton: {
     height: 46,
     borderWidth: 1,
@@ -332,7 +363,7 @@ const styles = StyleSheet.create({
     borderRadius: 23,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 12,
   },
 
   logoutText: {
