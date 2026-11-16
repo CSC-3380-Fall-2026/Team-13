@@ -15,6 +15,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
+import EventsScreen from "./src/screens/EventsScreen";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
@@ -96,6 +97,8 @@ export default function App() {
     );
   }
 
+
+
   if (currentScreen === "favorites") {
     return (
       <FavoritesScreen
@@ -106,6 +109,13 @@ export default function App() {
       />
     );
   }
+if (currentScreen === "events") {
+  return (
+    <EventsScreen
+      onNavigate={setCurrentScreen }
+    />
+  );
+}
 
   if (currentScreen === "submit") {
     return (

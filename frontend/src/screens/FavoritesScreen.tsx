@@ -180,6 +180,14 @@ export default function FavoritesScreen({
           <Text style={styles.activeNavText}>Favorites</Text>
         </TouchableOpacity>
 
+         <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("events")}
+        >
+          <Ionicons name="calendar-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Events</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => onNavigate("profile")}

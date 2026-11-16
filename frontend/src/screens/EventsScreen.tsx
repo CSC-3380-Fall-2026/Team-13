@@ -1,508 +1,931 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
-  FlatList, 
-  TouchableOpacity, 
-  Modal,
   TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  FlatList,
+  Modal 
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+
+
 
 interface PopUpEvent {
-  id: string | number;
-  name: string;
-  date_time: string;
-  location: string;
-  description: string;
+  id: string;
+  day: string;
+  date: string;
   category: string;
+  name: string;
+  location: string;
+  dateTimeStr: string;
+  price: string;
+  isFavorite: boolean;
 }
 
-const CATEGORIES = ['All', 'Food', 'Shopping', 'Services', 'Top Rated'];
+interface NavButtonProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  active?: boolean;
+  onPress?: () => void;
+}
 
-export default function EventsScreen() {
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [modalVisible, setModalVisible] = useState(false);
 
-  // Live database state
-  const [events, setEvents] = useState<PopUpEvent[]>([]);
-  const [loading, setLoading] = useState(false);
+function NavButton({
+  label,
+  icon,
+  active = false,
+  onPress,
+}: NavButtonProps) {
+  return (
+    <TouchableOpacity
+      style={styles.navItem}
+      onPress={onPress}
+      disabled={active}
+    >
+      <Ionicons
+        name={icon}
+        size={22}
+        color={active ? "#ff6b21" : "#999"}
+      />
 
-  // Form states for adding a new event
-  const [name, setName] = useState('');
-  const [dateTime, setDateTime] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Food'); // Default category
+      <Text
+        style={
+          active
+            ? styles.activeNavText
+            : styles.navText
+        }
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
-  // 1. Fetch events from your Node.js/Express backend API
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      // Replace with your local machine IP if testing on a physical device
-      const response = await fetch('http://192.168.1.198:8081/api/events');
-      const data = await response.json();
-      setEvents(data);
-    } catch (error) {
-      console.error('Error fetching events from database:', error);
-    } finally {
-      setLoading(false);
-    }
+export const INITIAL_EVENTS: PopUpEvent[] = [
+  {
+    id: '1',
+    day: 'FRI',
+    date: '13',
+    category: 'LIVE MUSIC',
+    name: 'Acoustic night',
+    location: 'Juniper & Grain • 0.3 mi',
+    dateTimeStr: 'Fri, Nov 13 • 6–9 PM',
+    price: 'Free',
+    isFavorite: false,
+  },
+  {
+    id: '2',
+    day: 'SAT',
+    date: '14',
+    category: 'SHOP LOCAL',
+    name: 'The neighborhood pop-up',
+    location: 'North & Pine • 0.6 mi',
+    dateTimeStr: 'Sat, Nov 14 • 10 AM–4 PM',
+    price: 'Free',
+    isFavorite: false,
+  },
+  {
+    id: '3',
+    day: 'SUN',
+    date: '15',
+    category: 'WORKSHOP',
+    name: 'Sunday pottery club',
+    location: 'Common Ground Studio • 0.8 mi',
+    dateTimeStr: 'Sun, Nov 15 • 11 AM–1 PM',
+    price: '$25',
+    isFavorite: false,
+  },
+];
+
+export default function EventsScreen({onNavigate} : {onNavigate: (screen : string) =>void}) {
+  const [activeFilter, setActiveFilter] = useState('All events');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [events, setEvents] = useState<PopUpEvent[]>(INITIAL_EVENTS);
+  const [calendarModalVisible, setCalendarModalVisiable] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+const [selectedEvent, setSelectedEvent] = useState<any>(null);
+
+  
+  const currentDate = new Date();
+  const currentMonthIndex = currentDate.getMonth(); 
+  const currentYear = currentDate.getFullYear();
+  const todayDateNum = currentDate.getDate().toString();
+
+const monthNames = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const currentMonthName = `${monthNames[currentMonthIndex]} ${currentYear}`;
+
+  const totalDaysInCurrentMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+  const daysInMonth = Array.from({ length: totalDaysInCurrentMonth }, (_, i) => i + 1);
+
+  const toggleFavorite = (id: string) => {
+    setEvents(events.map(ev => ev.id === id ? { ...ev, isFavorite: !ev.isFavorite } : ev));
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const filteredEvents = events.filter(ev => {
+    const matchesSearch = ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          ev.category.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
 
-  // 2. Submit new event to PostgreSQL via backend POST route
-  const handlePublishEvent = async () => {
-    if (!name || !dateTime || !location) {
-      alert('Please fill out the required fields.');
-      return;
+    if (activeFilter === 'Today') {
+      return ev.date === todayDateNum;
+    } else if (activeFilter === 'This weekend') {
+      return ['13', '14', '15', '16', '17'].includes(ev.date); 
     }
-
-    try {
-      const response = await fetch('http://192.168.1.198:8081/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          date_time: dateTime,
-          location,
-          description,
-          category,
-        }),
-      });
-
-      if (response.ok) {
-        // Clear form inputs, close modal, and refresh list
-        setModalVisible(false);
-        setName('');
-        setDateTime('');
-        setLocation('');
-        setDescription('');
-        fetchEvents(); 
-      } else {
-        alert('Failed to publish event to database.');
-      }
-    } catch (error) {
-      console.error('Error posting event:', error);
-    }
-  };
-
-  // Filter events based on selected category pill
-  const filteredEvents = events.filter(item => {
-    if (activeCategory === 'All') return true;
-    return item.category?.toLowerCase() === activeCategory.toLowerCase();
+    
+    return true;
   });
 
-  const renderEventCard = ({ item }: { item: PopUpEvent }) => {
-    const getCategoryBg = (cat: string) => {
-      switch(cat) {
-        case 'Food': return '#FFF2E8';
-        case 'Shopping': return '#E8F5E9';
-        case 'Services': return '#EFEBF8';
-        default: return '#F3F4F6';
-      }
-    };
-
-    const getCategoryIcon = (cat: string) => {
-      switch(cat) {
-        case 'Food': return 'restaurant-outline';
-        case 'Shopping': return 'bag-outline';
-        case 'Services': return 'brush-outline';
-        default: return 'storefront-outline';
-      }
-    };
-
-    return (
-      <View style={styles.eventCard}>
-        <View style={styles.cardLeftSection}>
-          <View style={[styles.iconCircle, { backgroundColor: getCategoryBg(item.category) }]}>
-            <Ionicons name={getCategoryIcon(item.category)} size={22} color="#D93838" />
-          </View>
-        </View>
-        
-        <View style={styles.cardMainContent}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.eventName} numberOfLines={1}>{item.name}</Text>
-            <TouchableOpacity>
-              <Ionicons name="heart-outline" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.metaText}>{item.date_time}</Text>
-          <Text style={styles.locationText}>{item.location}</Text>
-
-          <TouchableOpacity style={styles.viewBusinessButton}>
-            <Text style={styles.viewBusinessButtonText}>View Event</Text>
-            <Ionicons name="arrow-forward" size={14} color="#fff" style={styles.iconSpacing} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  const HeaderSection = () => (
-    <View style={styles.headerContainer}>
-      <View style={styles.topBar}>
-        <Text style={styles.popMapLogo}>POPMAP</Text>
-        <TouchableOpacity style={styles.mapIconButton}>
-          <MaterialCommunityIcons name="map-marker-outline" size={20} color="#D93838" />
+  return (
+    <View style={styles.container}>
+      <View style={styles.topHeader}>
+        <Text style={styles.brandTitle}>POPMAP</Text>
+        <TouchableOpacity
+          style={styles.locationContainer}
+          onPress={() => onNavigate('map')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="location-outline" size={14} color="#666" style={{ marginRight: 3 }} />
+          <Text style={styles.locationText}>Near you</Text>
+          <Ionicons name="chevron-down" size={12} color="#666" style={{ marginLeft: 2 }} />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.headline}>Find your new local events here.</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.titleSection}>
+          <Text style={styles.mainHeading}>Good plans.{'\n'}Great neighbors.</Text>
+          <Text style={styles.subHeading}>Discover what's happening around you.</Text>
+        </View>
 
-      <View style={styles.categoriesScroll}>
-        {CATEGORIES.map(cat => (
-          <TouchableOpacity 
-            key={cat}
-            style={[styles.categoryPill, activeCategory === cat && styles.categoryPillActive]}
-            onPress={() => setActiveCategory(cat)}
+        <View style={styles.searchRow}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={18} color="#888" style={{ marginRight: 8 }} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search local events"
+              placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+         <TouchableOpacity 
+            style={styles.filterButton} 
+            onPress={() => setFilterModalVisible(true)}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.categoryPillText, activeCategory === cat && styles.categoryPillTextActive]}>
-              {cat}
-            </Text>
+            <Ionicons name="options-outline" size={18} color="#333" />
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.nearbyHeaderRow}>
-        <Text style={styles.nearbyHeaderTitle}>Nearby places</Text>
-        <Text style={styles.nearbyResultsCount}>{filteredEvents.length} results</Text>
-      </View>
-    </View>
-  );
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillsContainer}>
+          {['All events', 'Today', 'This weekend'].map((filter) => (
+            <TouchableOpacity 
+              key={filter}
+              style={[styles.pill, activeFilter === filter && styles.pillActive]}
+              onPress={() => setActiveFilter(filter)}
+            >
+              <Text style={[styles.pillText, activeFilter === filter && styles.pillTextActive]}>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-  return (
-    <View style={styles.mainContainer}>
-      <FlatList 
-        data={filteredEvents}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderEventCard}
-        contentContainerStyle={styles.listContentContainer}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={HeaderSection}
-      />
+        <TouchableOpacity 
+          style={styles.calendarBanner}
+          onPress={() => setCalendarModalVisiable(true)}
+          activeOpacity={0.9}
+        >
+          <View style={styles.calendarBannerLeft}>
+            <Ionicons name="calendar-outline" size={20} color="#ff6b21" />
+            <Text style={styles.calendarBannerText}>Open calendar</Text>
+          </View>
+          <Text style={styles.calendarBannerDateRange}>Nov 13–15</Text>
+        </TouchableOpacity>
 
-      {/* Floating Add Button */}
-      <TouchableOpacity style={styles.floatingAddButton} onPress={() => setModalVisible(true)}>
-        <Ionicons name="add" size={24} color="#fff" />
-      </TouchableOpacity>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Nearby events</Text>
+          <Text style={styles.resultsCount}>3 this week</Text>
+        </View>
 
-      {/* Add Event Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContentWrapper}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add Event</Text>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close" size={22} color="#111" />
-                </TouchableOpacity>
+        {filteredEvents.map((item) => (
+          <View key={item.id} style={styles.eventCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.dateBox}>
+                <Text style={styles.dateDay}>{item.day}</Text>
+                <Text style={styles.dateNum}>{item.date}</Text>
               </View>
-              
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Event Name" 
-                value={name} 
-                onChangeText={setName} 
-                placeholderTextColor="#9ca3af" 
-              />
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Date & Time / Info (e.g. Food • 0.3 mi)" 
-                value={dateTime} 
-                onChangeText={setDateTime} 
-                placeholderTextColor="#9ca3af" 
-              />
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Location" 
-                value={location} 
-                onChangeText={setLocation} 
-                placeholderTextColor="#9ca3af" 
-              />
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Category (Food, Shopping, Services)" 
-                value={category} 
-                onChangeText={setCategory} 
-                placeholderTextColor="#9ca3af" 
-              />
-              <TextInput 
-                style={[styles.modalInput, styles.textArea]} 
-                placeholder="Description" 
-                value={description} 
-                onChangeText={setDescription} 
-                multiline 
-                placeholderTextColor="#9ca3af" 
-              />
 
-              <TouchableOpacity style={styles.modalSubmitButton} onPress={handlePublishEvent}>
-                <Text style={styles.modalSubmitButtonText}>Publish Event</Text>
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventCategory}>{item.category}</Text>
+                <Text style={styles.eventName}>{item.name}</Text>
+                <Text style={styles.eventLocation}>{item.location}</Text>
+                <Text style={styles.eventTime}>{item.dateTimeStr}</Text>
+              </View>
+
+              <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favButton}>
+                <Ionicons 
+                  name={item.isFavorite ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={item.isFavorite ? "#FF3B30" : "#666"} 
+                />
               </TouchableOpacity>
             </View>
+
+            <View style={styles.cardFooter}>
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceText}>{item.price}</Text>
+              </View>
+              <TouchableOpacity style={styles.viewEventButton}
+                onPress={() => setSelectedEvent(item)}>
+                <View style={styles.viewEventRight}>
+                <Text style={styles.viewEventText}>View event</Text>
+                <Ionicons name="arrow-forward" size={16} color="#fff" style={{ marginLeft: 6 }} />
+                </View>
+              </TouchableOpacity>
+            </View>
+           
           </View>
+        ))}
+
+        <View style={{ height: 20 }} />
+ 
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={calendarModalVisible}
+        onRequestClose={() => setCalendarModalVisiable(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>Event calendar</Text>
+              <TouchableOpacity onPress={() => setCalendarModalVisiable(false)}>
+                <Ionicons name="close" size={22} color="#555" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.monthHeaderRow}>
+              <Text style={styles.monthTitle}>{currentMonthName}</Text>
+              <View style={styles.eventsPill}>
+                <Text style={styles.eventsPillText}>3 events</Text>
+              </View>
+            </View>
+
+            <View style={styles.weekDaysRow}>
+              {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) => (
+                <Text key={d} style={styles.weekDayText}>{d}</Text>
+              ))}
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {daysInMonth.map((day) => {
+                const isSelectedEvent = day >= 13 && day <= 15;
+
+                return (
+                  <View 
+                    key={day} 
+                    style={[
+                      styles.dayCell, 
+                      isSelectedEvent && styles.highlightedDayCell
+                    ]}
+                  >
+                    <Text 
+                      style={[
+                        styles.dayText,
+                        isSelectedEvent && styles.highlightedDayText
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                    {isSelectedEvent && <View style={styles.eventDot} />}
+                  </View>
+                );
+              })}
+            </View>
+
+            <View style={styles.modalFooterRow}>
+              <View style={styles.footerLegendGroup}>
+                <View style={styles.legendDot} />
+                <Text style={styles.legendText}>Event dates</Text>
+              </View>
+              <Text style={styles.footerDateRange}>Nov 13–15</Text>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.doneButton}
+              onPress={() => setCalendarModalVisiable(false)}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+
+          </View>
+          
         </View>
       </Modal>
+
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={selectedEvent !== null}
+        onRequestClose={() => setSelectedEvent(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>Event Details</Text>
+              <TouchableOpacity onPress={() => setSelectedEvent(null)}>
+                <Ionicons name="close" size={22} color="#555" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedEvent && (
+              <View style={styles.eventDetailBody}>
+                <View style={styles.detailBadgeRow}>
+                  <Text style={styles.detailCategoryBadge}>{selectedEvent.category.toUpperCase()}</Text>
+                  <Text style={styles.detailPriceBadge}>{selectedEvent.price}</Text>
+                </View>
+
+                <Text style={styles.detailTitle}>{selectedEvent.title}</Text>
+                
+                <View style={styles.detailRow}>
+                  <Ionicons name="location-outline" size={16} color="#ff6b21" />
+                  <Text style={styles.detailText}>{selectedEvent.venue}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Ionicons name="time-outline" size={16} color="#ff6b21" />
+                  <Text style={styles.detailText}>{selectedEvent.dateStr}</Text>
+                </View>
+
+                <Text style={styles.detailDescriptionLabel}>About this event</Text>
+                <Text style={styles.detailDescriptionText}>
+                  Join us for {selectedEvent.title}, hosted locally! Experience great community vibes, connect with neighbors, and enjoy a wonderful time.
+                </Text>
+              </View>
+            )}
+
+            <TouchableOpacity 
+              style={[styles.doneButton, { marginTop: 20 }]}
+              onPress={() => setSelectedEvent(null)}
+            >
+              <Text style={styles.doneButtonText}>Close</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+        </Modal>
+
+      </ScrollView>
+      <View style={styles.nav}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("map")}
+        >
+          <Ionicons name="map-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Map</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("search")}
+        >
+          <Ionicons name="search-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Search</Text>
+        </TouchableOpacity>
+
+         <TouchableOpacity
+                  style={styles.navItem}
+                  onPress={() => onNavigate("favorites")}
+                >
+            <Ionicons name="heart" size={20} color="#999" />
+                  <Text style={styles.navText}>Favorites</Text>
+          </TouchableOpacity>
+
+         <TouchableOpacity
+          onPress={() => onNavigate("events")}
+        >
+          <View style={styles.activeNavIcon}>
+          <Ionicons name="calendar-outline" size={22} color="#999" />
+          </View>
+          <Text style={styles.activeNavText}>Events</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("profile")}
+        >
+          <Ionicons name="person-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
+    
+    
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     flex: 1,
-    backgroundColor: '#FBFBFA',
+    backgroundColor: '#FAF9F6',
   },
-  headerContainer: {
-    backgroundColor: '#FBFBFA',
-    paddingTop: 44,
+  calendarBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fbebe2",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#f2d6c9",
+  },
+  calendarBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  calendarBannerText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#c24907",
+  },
+  calendarBannerDateRange: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#c24907",
+  },
+  resultsCount: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 80,
     paddingBottom: 8,
   },
-  listContentContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 120,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    marginBottom: 12,
-  },
-  popMapLogo: {
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 2,
-    color: '#D93838',
-  },
-  mapIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FDF2F2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F9D8D8',
-  },
-  headline: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#111',
-    letterSpacing: -1,
-    marginBottom: 20,
-    paddingHorizontal: 4,
-  },
-  categoriesScroll: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  categoryPill: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 22,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  categoryPillActive: {
-    backgroundColor: '#111111',
-  },
-  categoryPillText: {
+  brandTitle: {
     fontSize: 13,
-    color: '#111',
-    fontWeight: '500',
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    color: '#FF6600',
   },
-  categoryPillTextActive: {
-    color: '#FFFFFF',
-  },
-  nearbyHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
-    paddingHorizontal: 4,
   },
-  nearbyHeaderTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111',
+   nav: {
+    height: 78,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingBottom: 8,
   },
-  nearbyResultsCount: {
-    fontSize: 12,
-    color: '#9ca3af',
-    fontWeight: '500',
+
+  navItem: {
+    width: 70,
+    alignItems: "center",
   },
-  eventCard: {
+
+  navText: {
+    fontSize: 11,
+    color: "#999",
+    marginTop: 4,
+  },
+    activeNavIcon: {
+    width: 34,
+    height: 28,
+    borderRadius: 15,
+    backgroundColor: "#fff1e8",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  activeNavText: {
+    fontSize: 11,
+    color: "#ff6b21",
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  locationContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    backgroundColor: '#F0ECE4',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 20,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  cardLeftSection: {
-    marginRight: 14,
-    justifyContent: 'center',
-  },
-  iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardMainContent: {
-    flex: 1,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  eventName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111',
-    flex: 1,
-    marginRight: 8,
-  },
-  metaText: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 2,
   },
   locationText: {
     fontSize: 12,
-    color: '#9ca3af',
-    marginBottom: 10,
-  },
-  viewBusinessButton: {
-    flexDirection: 'row',
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-  },
-  viewBusinessButtonText: {
-    color: '#fff',
-    fontSize: 11,
     fontWeight: '600',
+    color: '#444',
   },
-  iconSpacing: {
-    marginLeft: 4,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  tabBarContainer: {
-    position: 'absolute',
-    bottom: 25,
-    left: 20,
-    right: 20,
+  titleSection: {
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  mainHeading: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  subHeading: {
+    fontSize: 15,
+    color: '#666',
+  },
+  searchRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 36,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 8,
-    height: 65,
+    marginBottom: 16,
   },
-  tabItem: {
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E0DA',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 48,
   },
-  tabLabel: {
-    fontSize: 10,
-    color: '#9ca3af',
-    marginTop: 2,
-    fontWeight: '500',
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
   },
-  floatingAddButton: {
-    position: 'absolute',
-    bottom: 105,
-    right: 20,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#D93838',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#D93838',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+  viewEventPrice: {
+    color: "white",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  viewEventRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modalContentWrapper: {
-    maxHeight: '85%',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: "white",
+    borderRadius: 24,
     padding: 20,
-    paddingBottom: 36,
+    width: "100%",
+    maxWidth: 360,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#151515",
+  },
+  monthHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  monthTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#151515",
+  },
+  eventsPill: {
+    backgroundColor: "#fbebe2",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  eventsPillText: {
+    color: "#c24907",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  weekDaysRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 10,
+  },
+  weekDayText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#999",
+    width: 36,
+    textAlign: "center",
+  },
+  calendarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+  },
+  dayCell: {
+    width: "14.28%",
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 4,
+    borderRadius: 12,
+  },
+  highlightedDayCell: {
+    backgroundColor: "#fbebe2",
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#333",
+  },
+  highlightedDayText: {
+    color: "#c24907",
+    fontWeight: "800",
+  },
+  eventDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#c24907",
+    position: "absolute",
+    bottom: 8,
+  },
+  modalFooterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingTop: 14,
+    marginTop: 10,
+    marginBottom: 16,
+  },
+  footerLegendGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  legendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#c24907",
+  },
+  legendText: {
+    fontSize: 12,
+    color: "#777",
+  },
+  footerDateRange: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#c24907",
+  },
+  doneButton: {
+    backgroundColor: "#191716",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  doneButtonText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  filterButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E0DA',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  pillsContainer: {
+    flexDirection: 'row',
+    marginBottom: 24,
+  },
+  pill: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E0DA',
+    marginRight: 10,
+  },
+  pillActive: {
+    backgroundColor: '#FF6600',
+    borderColor: '#FF6600',
+  },
+  pillText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#444',
+  },
+  pillTextActive: {
+    color: '#fff',
+  },
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+  },
+  sectionSubCount: {
+    fontSize: 13,
+    color: '#777',
+    fontWeight: '500',
+  },
+  eventCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#EFECE6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
-  },
-  modalInput: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 46,
-    marginBottom: 12,
-    fontSize: 14,
-    color: '#111',
-  },
-  textArea: {
-    height: 80,
-    paddingTop: 10,
-    textAlignVertical: 'top',
-  },
-  modalSubmitButton: {
-    backgroundColor: '#D93838',
-    height: 48,
+  dateBox: {
+    width: 52,
+    height: 62,
+    backgroundColor: '#F5EBE0',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginRight: 14,
   },
-  modalSubmitButtonText: {
-    color: '#FFFFFF',
+  dateDay: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B85D23',
+    letterSpacing: 0.5,
+  },
+  dateNum: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  eventInfo: {
+    flex: 1,
+  },
+  eventCategory: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FF6600',
+    letterSpacing: 1,
+    marginBottom: 3,
+  },
+  eventName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  eventLocation: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 2,
+  },
+  eventTime: {
+    fontSize: 13,
+    color: '#555',
+    fontWeight: '500',
+  },
+  favButton: {
+    padding: 4,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F5F2EC',
+    paddingTop: 12,
+  },
+  priceBadge: {
+    justifyContent: 'center',
+  },
+  priceText: {
     fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+  },
+  viewEventButton: {
+    flexDirection: 'row',
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  viewEventText: {
+    color: '#fff',
+    fontSize: 13,
     fontWeight: '600',
+  },
+  eventDetailBody: {
+    marginVertical: 10,
+  },
+  detailBadgeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  detailCategoryBadge: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#ff6b21",
+    backgroundColor: "#fff0e7",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  detailPriceBadge: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#151515",
+  },
+  detailTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#151515",
+    marginBottom: 12,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 14,
+    color: "#555",
+    fontWeight: "600",
+  },
+  detailDescriptionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#999",
+    marginTop: 12,
+    marginBottom: 4,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  detailDescriptionText: {
+    fontSize: 14,
+    color: "#444",
+    lineHeight: 20,
   },
 });
