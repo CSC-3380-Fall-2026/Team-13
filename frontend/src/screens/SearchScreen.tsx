@@ -68,7 +68,9 @@ export default function SearchScreen({
   return (
     <View style={styles.screen}>
       {activeTab === "Events" ? (
-        <EventsScreen />
+        <EventsScreen onNavigate={function (screen: string): void {
+          throw new Error("Function not implemented.");
+        } } />
       ) : (
         <ScrollView
           style={styles.scrollView}

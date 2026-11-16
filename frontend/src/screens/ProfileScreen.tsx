@@ -172,6 +172,13 @@ export default function ProfileScreen({
           icon="heart-outline"
           onPress={() => onNavigate("favorites")}
         />
+         
+          <NavButton
+          label="Events"
+          icon="calendar-outline"
+          onPress={() => onNavigate("events")}
+        />
+        
 
         <NavButton
           label="Profile"

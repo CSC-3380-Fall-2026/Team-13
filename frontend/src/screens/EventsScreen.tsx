@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 
+
 interface PopUpEvent {
   id: string;
   day: string;
@@ -22,6 +23,45 @@ interface PopUpEvent {
   dateTimeStr: string;
   price: string;
   isFavorite: boolean;
+}
+
+interface NavButtonProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  active?: boolean;
+  onPress?: () => void;
+}
+
+
+function NavButton({
+  label,
+  icon,
+  active = false,
+  onPress,
+}: NavButtonProps) {
+  return (
+    <TouchableOpacity
+      style={styles.navItem}
+      onPress={onPress}
+      disabled={active}
+    >
+      <Ionicons
+        name={icon}
+        size={22}
+        color={active ? "#ff6b21" : "#999"}
+      />
+
+      <Text
+        style={
+          active
+            ? styles.activeNavText
+            : styles.navText
+        }
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 export const INITIAL_EVENTS: PopUpEvent[] = [
@@ -62,6 +102,7 @@ export const INITIAL_EVENTS: PopUpEvent[] = [
 
 export default function EventsScreen({onNavigate} : {onNavigate: (screen : string) =>void}) {
   const [activeFilter, setActiveFilter] = useState('All events');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [events, setEvents] = useState<PopUpEvent[]>(INITIAL_EVENTS);
   const [calendarModalVisible, setCalendarModalVisiable] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +112,7 @@ const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const currentDate = new Date();
   const currentMonthIndex = currentDate.getMonth(); 
   const currentYear = currentDate.getFullYear();
-  const todayDateNum = currentDate.getDate();
+  const todayDateNum = currentDate.getDate().toString();
 
 const monthNames = [
     "January", "February", "March", "April", "May", "June", 
@@ -86,10 +127,19 @@ const monthNames = [
     setEvents(events.map(ev => ev.id === id ? { ...ev, isFavorite: !ev.isFavorite } : ev));
   };
 
-  const filteredEvents = events.filter(ev => 
-    ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ev.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEvents = events.filter(ev => {
+    const matchesSearch = ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          ev.category.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (activeFilter === 'Today') {
+      return ev.date === todayDateNum;
+    } else if (activeFilter === 'This weekend') {
+      return ['13', '14', '15', '16', '17'].includes(ev.date); 
+    }
+    
+    return true;
+  });
 
   return (
     <View style={styles.container}>
@@ -123,7 +173,11 @@ const monthNames = [
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
+         <TouchableOpacity 
+            style={styles.filterButton} 
+            onPress={() => setFilterModalVisible(true)}
+            activeOpacity={0.8}
+          >
             <Ionicons name="options-outline" size={18} color="#333" />
           </TouchableOpacity>
         </View>
@@ -195,11 +249,12 @@ const monthNames = [
                 </View>
               </TouchableOpacity>
             </View>
+           
           </View>
         ))}
 
         <View style={{ height: 20 }} />
-
+ 
         <Modal
         animationType="fade"
         transparent={true}
@@ -275,7 +330,7 @@ const monthNames = [
         </View>
       </Modal>
 
-<Modal
+        <Modal
         animationType="fade"
         transparent={true}
         visible={selectedEvent !== null}
@@ -284,7 +339,6 @@ const monthNames = [
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             
-            {/* Modal Header */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalHeaderTitle}>Event Details</Text>
               <TouchableOpacity onPress={() => setSelectedEvent(null)}>
@@ -292,7 +346,6 @@ const monthNames = [
               </TouchableOpacity>
             </View>
 
-            {/* Event Info Display */}
             {selectedEvent && (
               <View style={styles.eventDetailBody}>
                 <View style={styles.detailBadgeRow}>
@@ -328,10 +381,51 @@ const monthNames = [
 
           </View>
         </View>
-      </Modal>
+        </Modal>
 
       </ScrollView>
+      <View style={styles.nav}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("map")}
+        >
+          <Ionicons name="map-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Map</Text>
+        </TouchableOpacity>
 
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("search")}
+        >
+          <Ionicons name="search-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Search</Text>
+        </TouchableOpacity>
+
+         <TouchableOpacity
+                  style={styles.navItem}
+                  onPress={() => onNavigate("favorites")}
+                >
+            <Ionicons name="heart" size={20} color="#999" />
+                  <Text style={styles.navText}>Favorites</Text>
+          </TouchableOpacity>
+
+         <TouchableOpacity
+          onPress={() => onNavigate("events")}
+        >
+          <View style={styles.activeNavIcon}>
+          <Ionicons name="calendar-outline" size={22} color="#999" />
+          </View>
+          <Text style={styles.activeNavText}>Events</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate("profile")}
+        >
+          <Ionicons name="person-outline" size={22} color="#999" />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
     
     
     </View>
@@ -394,6 +488,42 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
+  },
+   nav: {
+    height: 78,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingBottom: 8,
+  },
+
+  navItem: {
+    width: 70,
+    alignItems: "center",
+  },
+
+  navText: {
+    fontSize: 11,
+    color: "#999",
+    marginTop: 4,
+  },
+    activeNavIcon: {
+    width: 34,
+    height: 28,
+    borderRadius: 15,
+    backgroundColor: "#fff1e8",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  activeNavText: {
+    fontSize: 11,
+    color: "#ff6b21",
+    fontWeight: "700",
+    marginTop: 4,
   },
   locationContainer: {
     flexDirection: 'row',
