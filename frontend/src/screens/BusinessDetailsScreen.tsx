@@ -10,11 +10,13 @@ import {
 interface BusinessDetailsProps {
   businessName: string;
   onBack: () => void;
+  onViewReviews: () => void;
 }
 
 export default function BusinessDetailsScreen({
   businessName,
   onBack,
+  onViewReviews,
 }: BusinessDetailsProps) {
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -165,12 +167,22 @@ export default function BusinessDetailsScreen({
             </Text>
           </View>
 
-          <Text style={styles.reviewText}>
+                    <Text style={styles.reviewText}>
             Great service and a really welcoming
             atmosphere! I would definitely recommend
             visiting this business.
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.reviewsButton}
+          onPress={onViewReviews}
+          accessibilityRole="button"
+        >
+          <Text style={styles.reviewsButtonText}>
+            View Reviews
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -301,5 +313,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     color: "#444444",
+  },
+
+    reviewsButton: {
+    backgroundColor: "#191716",
+    padding: 12,
+    borderRadius: 20,
+    alignItems: "center",
+    marginTop: 16,
+  },
+
+  reviewsButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });

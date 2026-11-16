@@ -15,8 +15,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
-import EventsScreen from "./src/screens/EventsScreen";
-
+import {ReviewsScreen} from "./src/ReviewsScreen";
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
   const handleLogout = () => {
@@ -90,14 +89,36 @@ export default function App() {
 
   if (currentScreen === "details") {
     return (
-      <BusinessDetailsScreen
+            <BusinessDetailsScreen
         businessName={selectedBusiness}
         onBack={() => setCurrentScreen("search")}
+        onViewReviews={() => setCurrentScreen("reviews")}
       />
     );
   }
 
+    if (currentScreen === "reviews") {
+    return (
+      <View style={styles.mapContainer}>
+        <View style={styles.reviewsHeader}>
+          <TouchableOpacity
+            onPress={() => setCurrentScreen("details")}
+            accessibilityRole="button"
+          >
+            <Text style={styles.reviewsBackText}>
+              ← Back to Business
+            </Text>
+          </TouchableOpacity>
 
+          <Text style={styles.reviewsBusinessName}>
+            {selectedBusiness}
+          </Text>
+        </View>
+
+        <ReviewsScreen key={selectedBusiness} />
+      </View>
+    );
+  }
 
   if (currentScreen === "favorites") {
     return (
@@ -179,5 +200,25 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "700",
     marginLeft: 5,
+  },
+
+    reviewsHeader: {
+    paddingTop: 55,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    backgroundColor: "#fbf8f3",
+  },
+
+  reviewsBackText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ff6b21",
+  },
+
+  reviewsBusinessName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#151515",
+    marginTop: 12,
   },
 });
