@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -16,6 +17,9 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
 import {ReviewsScreen} from "./src/ReviewsScreen";
+import { apiRequest } from "./src/api";
+import type { Business } from "./src/api";
+import EventsScreen from "./src/screens/EventsScreen";
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
   const handleLogout = () => {
@@ -23,7 +27,7 @@ export default function App() {
   };
 
   const [selectedBusiness, setSelectedBusiness] =
-    useState("Juniper & Grain");
+  useState<Business | null>(null);
 
   const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -31,10 +35,39 @@ export default function App() {
   const [userLastName, setUserLastName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
-  function openBusiness(businessName: string) {
-    setSelectedBusiness(businessName);
+  async function openBusiness(selection: Business | string) {
+  try {
+    let business: Business;
+
+    if (typeof selection === "string") {
+      // Compatibility with the existing Favorites screen,
+      // which still passes a business name.
+      const businesses = await apiRequest<Business[]>("/businesses");
+
+      const matches = businesses.filter(
+        (item) => item.name === selection
+      );
+
+      if (matches.length !== 1) {
+        throw new Error(
+          "Please open this business from Search so the correct record is selected."
+        );
+      }
+
+      business = matches[0];
+    } else {
+      business = selection;
+    }
+
+    setSelectedBusiness(business);
     setCurrentScreen("details");
+  } catch (error) {
+    Alert.alert(
+      "Could not open business",
+      error instanceof Error ? error.message : "Please try again."
+    );
   }
+}
 
   function toggleFavorite(businessName: string) {
     if (favorites.includes(businessName)) {
@@ -87,17 +120,17 @@ export default function App() {
     );
   }
 
-  if (currentScreen === "details") {
-    return (
-            <BusinessDetailsScreen
-        businessName={selectedBusiness}
-        onBack={() => setCurrentScreen("search")}
-        onViewReviews={() => setCurrentScreen("reviews")}
-      />
-    );
-  }
+  if (currentScreen === "details" && selectedBusiness) {
+  return (
+    <BusinessDetailsScreen
+      business={selectedBusiness}
+      onBack={() => setCurrentScreen("search")}
+      onViewReviews={() => setCurrentScreen("reviews")}
+    />
+  );
+}
 
-    if (currentScreen === "reviews") {
+    if (currentScreen === "reviews" && selectedBusiness) {
     return (
       <View style={styles.mapContainer}>
         <View style={styles.reviewsHeader}>
@@ -111,11 +144,14 @@ export default function App() {
           </TouchableOpacity>
 
           <Text style={styles.reviewsBusinessName}>
-            {selectedBusiness}
+            {selectedBusiness.name}
           </Text>
         </View>
 
-        <ReviewsScreen key={selectedBusiness} />
+        <ReviewsScreen
+  key={selectedBusiness.id}
+  businessId={selectedBusiness.id}
+/>
       </View>
     );
   }

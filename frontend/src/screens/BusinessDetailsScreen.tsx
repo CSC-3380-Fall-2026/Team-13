@@ -2,103 +2,53 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
+import type { Business } from "../api";
 
 interface BusinessDetailsProps {
-  businessName: string;
+  business: Business;
   onBack: () => void;
   onViewReviews: () => void;
 }
 
 export default function BusinessDetailsScreen({
-  businessName,
+  business,
   onBack,
   onViewReviews,
 }: BusinessDetailsProps) {
   const [isFavorite, setIsFavorite] = useState(false);
-
-  const businessData = {
-    "Juniper & Grain": {
-      name: "Juniper & Grain",
-      category: "Food",
-      rating: "4.9 / 5.0",
-      description:
-        "A local favorite serving fresh food in a relaxed and welcoming atmosphere.",
-      hoursWeek: "Monday - Friday: 7:00 AM - 6:00 PM",
-      hoursWeekend: "Saturday - Sunday: 8:00 AM - 5:00 PM",
-      location: "Baton Rouge, Louisiana",
-    },
-
-    "North & Pine": {
-      name: "North & Pine",
-      category: "Shopping",
-      rating: "4.8 / 5.0",
-      description:
-        "A local shop offering unique products and a friendly shopping experience.",
-      hoursWeek: "Monday - Friday: 10:00 AM - 7:00 PM",
-      hoursWeekend: "Saturday - Sunday: 11:00 AM - 6:00 PM",
-      location: "Baton Rouge, Louisiana",
-    },
-
-    "Common Ground Studio": {
-      name: "Common Ground Studio",
-      category: "Services",
-      rating: "4.7 / 5.0",
-      description:
-        "A community-focused studio providing creative services in a welcoming environment.",
-      hoursWeek: "Monday - Friday: 9:00 AM - 6:00 PM",
-      hoursWeekend: "Saturday: 10:00 AM - 4:00 PM",
-      location: "Baton Rouge, Louisiana",
-    },
-
-    "Little Bird Bakery": {
-      name: "Little Bird Bakery",
-      category: "Food",
-      rating: "4.9 / 5.0",
-      description:
-        "A neighborhood bakery serving fresh baked goods and local favorites.",
-      hoursWeek: "Monday - Friday: 7:00 AM - 5:00 PM",
-      hoursWeekend: "Saturday - Sunday: 8:00 AM - 3:00 PM",
-      location: "Baton Rouge, Louisiana",
-    },
-  };
-
-  const business =
-    businessData[businessName as keyof typeof businessData] ||
-    businessData["Juniper & Grain"];
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={onBack}
+        accessibilityRole="button"
       >
         <Text style={styles.backText}>← Back</Text>
       </TouchableOpacity>
 
-      {/* Business Header */}
       <View style={styles.header}>
         <View style={styles.businessInfo}>
-          <Text style={styles.businessName}>
-            {business.name}
-          </Text>
-
+          <Text style={styles.businessName}>{business.name}</Text>
           <Text style={styles.category}>
-            {business.category}
+            {business.category || "Uncategorized"}
           </Text>
         </View>
 
-        {/* Favorite Button */}
         <TouchableOpacity
           style={styles.favoriteButton}
-          onPress={() => setIsFavorite(!isFavorite)}
+          onPress={() => setIsFavorite((previous) => !previous)}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isFavorite ? "Remove from favorites" : "Add to favorites"
+          }
         >
           <Text style={styles.favorite}>
             {isFavorite ? "♥" : "♡"}
@@ -106,80 +56,46 @@ export default function BusinessDetailsScreen({
         </TouchableOpacity>
       </View>
 
-      {/* Business Rating */}
-      <View style={styles.ratingContainer}>
-        <Text style={styles.ratingStar}>★</Text>
-
-        <Text style={styles.rating}>
-          {business.rating}
-        </Text>
-      </View>
-
-      {/* Business Description */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
-
         <Text style={styles.text}>
-          {business.description}
+          {business.description || "No description provided."}
         </Text>
       </View>
 
-      {/* Business Hours */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          Business Hours
-        </Text>
-
+        <Text style={styles.sectionTitle}>Business Hours</Text>
         <Text style={styles.text}>
-          {business.hoursWeek}
-        </Text>
-
-        <Text style={styles.text}>
-          {business.hoursWeekend}
+          {business.hours || "Hours not provided."}
         </Text>
       </View>
 
-      {/* Business Location */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          Location
-        </Text>
+        <Text style={styles.sectionTitle}>Location</Text>
+        <Text style={styles.text}>{business.location}</Text>
+      </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Products / Services</Text>
         <Text style={styles.text}>
-          {business.location}
+          {business.products || "No products or services listed."}
         </Text>
       </View>
 
-      {/* Customer Reviews */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          Customer Reviews
-        </Text>
-
-        <View style={styles.reviewCard}>
-          <View style={styles.reviewHeader}>
-            <Text style={styles.reviewerName}>
-              PopMap User
-            </Text>
-
-            <Text style={styles.reviewRating}>
-              ★★★★★
-            </Text>
-          </View>
-
-                    <Text style={styles.reviewText}>
-            Great service and a really welcoming
-            atmosphere! I would definitely recommend
-            visiting this business.
-          </Text>
-        </View>
+        <Text style={styles.sectionTitle}>Customer Reviews</Text>
 
         <TouchableOpacity
-          style={styles.reviewsButton}
           onPress={onViewReviews}
           accessibilityRole="button"
+          style={{
+            backgroundColor: "#151515",
+            padding: 14,
+            borderRadius: 20,
+            alignItems: "center",
+          }}
         >
-          <Text style={styles.reviewsButtonText}>
+          <Text style={{ color: "#fff", fontWeight: "700" }}>
             View Reviews
           </Text>
         </TouchableOpacity>

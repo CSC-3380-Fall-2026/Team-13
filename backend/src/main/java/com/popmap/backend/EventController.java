@@ -1,13 +1,10 @@
-EventController
+package com.popmap.backend;
 
-package com.popmap.controller;
+import java.util.List;
 
-import com.popmap.model.Event;
-import com.popmap.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
