@@ -1,4 +1,5 @@
-import com.popmap.model.Event;
+package com.popmap.backend;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,21 +9,19 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import EventsScreen from "./EventsScreen";
+import { apiRequest } from "../api";
+import type { Business } from "../api";
 
 interface SearchScreenProps {
-  onViewBusiness: (businessName: string) => void;
+  onViewBusiness: (business: Business) => void;
   onNavigate: (screen: string) => void;
   favorites: string[];
   onToggleFavorite: (businessName: string) => void;
 }
 
-interface Business {
-  name: string;
-  category: string;
-  distance: string;
-  rating: number;
-  reviews: number;
-}
+
+
+
 
 export default function SearchScreen({
   onViewBusiness,
@@ -35,14 +33,48 @@ export default function SearchScreen({
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("Search");
 
-  const businesses: Business[] = [
-    { name: "Juniper & Grain", category: "Food", distance: "0.3 mi", rating: 4.9, reviews: 128 },
-    { name: "North & Pine", category: "Shopping", distance: "0.6 mi", rating: 4.8, reviews: 94 },
-    { name: "Common Ground Studio", category: "Services", distance: "0.8 mi", rating: 4.7, reviews: 76 },
-    { name: "Little Bird Bakery", category: "Food", distance: "1.1 mi", rating: 4.9, reviews: 203 },
-  ];
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+const [isLoading, setIsLoading] = useState(true);
+const [loadError, setLoadError] = useState("");
+const [reloadKey, setReloadKey] = useState(0);
 
-  const filters = ["All", "Food", "Shopping", "Services", "Top Rated"];
+useEffect(() => {
+  let active = true;
+
+  async function loadBusinesses() {
+    setIsLoading(true);
+    setLoadError("");
+
+    try {
+      const data = await apiRequest<Business[]>("/businesses");
+
+      if (!Array.isArray(data)) {
+        throw new Error("The server returned an invalid business list.");
+      }
+
+      if (active) setBusinesses(data);
+    } catch (error) {
+      if (active) {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Could not load businesses."
+        );
+      }
+    } finally {
+      if (active) setIsLoading(false);
+    }
+  }
+
+  void loadBusinesses();
+
+  return () => {
+    active = false;
+  };
+}, [reloadKey]);
+
+
+const filters = ["All", "Food", "Shopping", "Services"];
 
   const filteredBusinesses = businesses.filter((business) => {
     const matchesSearch = business.name
@@ -54,7 +86,6 @@ export default function SearchScreen({
     if (selectedFilter === "Food") matchesFilter = business.category === "Food";
     if (selectedFilter === "Shopping") matchesFilter = business.category === "Shopping";
     if (selectedFilter === "Services") matchesFilter = business.category === "Services";
-    if (selectedFilter === "Top Rated") matchesFilter = business.rating >= 4.8;
 
     return matchesSearch && matchesFilter;
   });
@@ -68,9 +99,7 @@ export default function SearchScreen({
   return (
     <View style={styles.screen}>
       {activeTab === "Events" ? (
-        <EventsScreen onNavigate={function (screen: string): void {
-          throw new Error("Function not implemented.");
-        } } />
+        <EventsScreen onNavigate={onNavigate} />
       ) : (
         <ScrollView
           style={styles.scrollView}
@@ -118,18 +147,28 @@ export default function SearchScreen({
             ))}
           </ScrollView>
 
-          <Text style={styles.sectionTitle}>Nearby places</Text>
+          <Text style={styles.sectionTitle}>Local businesses</Text>
 
+{isLoading && <Text>Loading businesses...</Text>}
+
+{!!loadError && (
+  <View>
+    <Text>{loadError}</Text>
+    <TouchableOpacity onPress={() => setReloadKey((value) => value + 1)}>
+      <Text style={{ color: "#ff6b21", paddingVertical: 12 }}>Retry</Text>
+    </TouchableOpacity>
+  </View>
+)}
           {filteredBusinesses.map((business) => {
             const isFavorite = favorites.includes(business.name);
 
             return (
-              <View style={styles.businessCard} key={business.name}>
+              <View style={styles.businessCard} key={business.id}>
                 <View style={styles.cardTop}>
                   <View style={styles.businessInfo}>
                     <View style={styles.iconBox}>
                       <Ionicons
-                        name={getBusinessIcon(business.category) as any}
+                        name={getBusinessIcon(business.category ?? "") as any}
                         size={23}
                         color="#ff6b21"
                       />
@@ -139,15 +178,8 @@ export default function SearchScreen({
                       <Text style={styles.businessName}>{business.name}</Text>
 
                       <Text style={styles.businessDetails}>
-                        {business.category} • {business.distance}
-                      </Text>
-
-                      <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={15} color="#ff6b21" />
-                        <Text style={styles.rating}>
-                          {business.rating} ({business.reviews})
+                        {business.category || "Uncategorized"} • {business.location}
                         </Text>
-                      </View>
                     </View>
                   </View>
 
@@ -162,7 +194,7 @@ export default function SearchScreen({
 
                 <TouchableOpacity
                   style={styles.viewButton}
-                  onPress={() => onViewBusiness(business.name)}
+                  onPress={() => onViewBusiness(business)}
                 >
                   <Text style={styles.viewButtonText}>View Business</Text>
                   <Ionicons name="arrow-forward" size={16} color="#ffffff" />
@@ -171,7 +203,7 @@ export default function SearchScreen({
             );
           })}
 
-          {filteredBusinesses.length === 0 && (
+          {!isLoading && !loadError && filteredBusinesses.length === 0 && (
             <Text style={styles.noResults}>No businesses found.</Text>
           )}
 

@@ -1,110 +1,322 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  FlatList,
+} from "react-native";
+import { apiRequest } from "./api";
 
 interface Review {
-  id: string;
+  id: number;
+  businessId: string;
   rating: number;
   text: string;
 }
 
-export const ReviewsScreen = () => {
+interface ReviewsScreenProps {
+  businessId: number;
+}
+
+export const ReviewsScreen = ({
+  businessId,
+}: ReviewsScreenProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [currentRating, setCurrentRating] = useState<string>('');
-  const [reviewText, setReviewText] = useState<string>('');
-  
-  // State to handle the "Cancel/go back" flow
-  const [isReviewing, setIsReviewing] = useState<boolean>(false);
+  const [currentRating, setCurrentRating] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const overallRating = reviews.length > 0 
-    ? (reviews.reduce((acc, rev) => acc + rev.rating, 0) / reviews.length).toFixed(1)
-    : '0.0';
+  const submissionInProgress = useRef(false);
+  const mounted = useRef(false);
 
-  const handleSubmit = () => {
-    // Basic Validation
-    const ratingNum = Number(currentRating);
-    if (!currentRating || Number.isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-      Alert.alert("Validation Error", "Please enter a valid rating between 1 and 5 stars.");
+  useEffect(() => {
+    mounted.current = true;
+
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadReviews() {
+      setIsLoading(true);
+      setLoadError("");
+      setReviews([]);
+
+      try {
+        const data = await apiRequest<Review[]>(
+          `/businesses/${businessId}/reviews`
+        );
+
+        if (!Array.isArray(data)) {
+          throw new Error("The server returned an invalid review list.");
+        }
+
+        if (active) setReviews(data);
+      } catch (error) {
+        if (active) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Could not load reviews."
+          );
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    }
+
+    void loadReviews();
+
+    return () => {
+      active = false;
+    };
+  }, [businessId, reloadKey]);
+
+  const overallRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((sum, review) => sum + review.rating, 0) /
+          reviews.length
+        ).toFixed(1)
+      : "No ratings yet";
+
+  const handleSubmit = async () => {
+    if (submissionInProgress.current || isLoading || loadError) return;
+
+    setSubmitError("");
+
+    const rating = Number(currentRating);
+    const text = reviewText.trim();
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      setSubmitError("Choose a whole-number rating from 1 to 5.");
       return;
     }
-    if (!reviewText.trim()) {
-      Alert.alert("Validation Error", "Please type a review before submitting.");
+
+    if (!text) {
+      setSubmitError("Please write a comment before submitting.");
       return;
     }
 
-    // Submit the review and display submitted info
-    setReviews([{ id: Date.now().toString(), rating: ratingNum, text: reviewText }, ...reviews]);
-    
-    // Reset form and close it
-    setReviewText('');
-    setCurrentRating('');
-    setIsReviewing(false);
+    if (text.length > 2000) {
+      setSubmitError("Comments must be 2000 characters or fewer.");
+      return;
+    }
+
+    submissionInProgress.current = true;
+    setIsSubmitting(true);
+
+    try {
+      const savedReview = await apiRequest<Review>(
+        `/businesses/${businessId}/reviews`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ rating, text }),
+        }
+      );
+
+      if (!mounted.current) return;
+
+      setReviews((previous) => [savedReview, ...previous]);
+      setCurrentRating("");
+      setReviewText("");
+      setSubmitError("");
+      setIsReviewing(false);
+    } catch (error) {
+      if (mounted.current) {
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Could not save your review. Please try again."
+        );
+      }
+    } finally {
+      submissionInProgress.current = false;
+
+      if (mounted.current) setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
-    // Clear inputs and go back
-    setReviewText('');
-    setCurrentRating('');
+    if (submissionInProgress.current) return;
+
+    setCurrentRating("");
+    setReviewText("");
+    setSubmitError("");
     setIsReviewing(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Overall Rating: {overallRating} ⭐</Text>
-      <Text style={styles.subHeader}>Total Reviews: {reviews.length}</Text>
+      <Text style={styles.header}>
+        Overall Rating: {overallRating}
+      </Text>
 
-      {/* Toggles between the "Write a Review" button and the actual form */}
-      {!isReviewing ? (
-        <Button title="Write a Review" onPress={() => setIsReviewing(true)} />
-      ) : (
-        <View style={styles.form}>
-          <Text>Rate this business (1-5 stars):</Text>
-          <TextInput 
-            style={styles.input}
-            keyboardType="numeric"
-            value={currentRating}
-            onChangeText={setCurrentRating}
-            maxLength={1}
-            placeholder="e.g., 5"
+      <Text style={styles.subHeader}>
+        Total Reviews: {reviews.length}
+      </Text>
+
+      {isLoading ? (
+        <Text>Loading reviews...</Text>
+      ) : loadError ? (
+        <View>
+          <Text style={styles.error}>{loadError}</Text>
+          <Button
+            title="Retry"
+            onPress={() => setReloadKey((value) => value + 1)}
           />
-          <Text>Tell us about your experience:</Text>
-          <TextInput 
-            style={[styles.input, styles.textArea]}
-            placeholder="Leave your review..."
-            value={reviewText}
-            onChangeText={setReviewText}
-            multiline
-          />
-          <View style={styles.buttonRow}>
-            <Button title="Submit Review" onPress={handleSubmit} />
-            <Button title="Cancel" color="red" onPress={handleCancel} />
-          </View>
         </View>
-      )}
+      ) : (
+        <>
+          {!isReviewing ? (
+            <Button
+              title="Write a Review"
+              onPress={() => {
+                setSubmitError("");
+                setIsReviewing(true);
+              }}
+            />
+          ) : (
+            <View style={styles.form}>
+              <Text>Rate this business (1–5 stars):</Text>
 
-      <Text style={styles.reviewsTitle}>Recent Reviews:</Text>
-      <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.reviewItem}>
-            <Text style={styles.reviewStars}>{item.rating} Stars</Text>
-            <Text>{item.text}</Text>
-          </View>
-        )}
-      />
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={currentRating}
+                onChangeText={setCurrentRating}
+                placeholder="e.g., 5"
+                editable={!isSubmitting}
+                accessibilityLabel="Rating from 1 to 5"
+              />
+
+              <Text>Tell us about your experience:</Text>
+
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={reviewText}
+                onChangeText={setReviewText}
+                placeholder="Leave your review..."
+                multiline
+                maxLength={2000}
+                editable={!isSubmitting}
+                accessibilityLabel="Review comment"
+              />
+
+              {!!submitError && (
+                <Text style={styles.error} accessibilityRole="alert">
+                  {submitError}
+                </Text>
+              )}
+
+              <View style={styles.buttonRow}>
+                <Button
+                  title={isSubmitting ? "Saving..." : "Submit Review"}
+                  onPress={handleSubmit}
+                  disabled={isSubmitting}
+                />
+
+                <Button
+                  title="Cancel"
+                  color="red"
+                  onPress={handleCancel}
+                  disabled={isSubmitting}
+                />
+              </View>
+            </View>
+          )}
+
+          <Text style={styles.reviewsTitle}>Recent Reviews:</Text>
+
+          <FlatList
+            data={reviews}
+            keyExtractor={(item) => String(item.id)}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <Text>No reviews yet. Be the first to leave one!</Text>
+            }
+            renderItem={({ item }) => (
+              <View style={styles.reviewItem}>
+                <Text style={styles.reviewStars}>
+                  {item.rating} Stars
+                </Text>
+                <Text>{item.text}</Text>
+              </View>
+            )}
+          />
+        </>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  header: { fontSize: 22, fontWeight: 'bold' },
-  subHeader: { fontSize: 16, marginBottom: 20 },
-  form: { marginBottom: 20, padding: 10, borderWidth: 1, borderColor: '#eee', borderRadius: 5 },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginVertical: 10, borderRadius: 5 },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  buttonRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
-  reviewItem: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  reviewStars: { fontWeight: 'bold', marginBottom: 5 },
-  reviewsTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  subHeader: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  form: {
+    marginBottom: 20,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#eee",
+    borderRadius: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 5,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: "top",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 10,
+  },
+  reviewItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  reviewStars: {
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  reviewsTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  error: {
+    color: "#b00020",
+    marginBottom: 12,
+  },
 });

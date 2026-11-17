@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
@@ -26,7 +27,7 @@ const [currentScreen, setCurrentScreen] = useState("welcome");
 
 
   const [selectedBusiness, setSelectedBusiness] =
-    useState("Juniper & Grain");
+  useState<Business | null>(null);
 
   const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -41,7 +42,13 @@ const [currentScreen, setCurrentScreen] = useState("welcome");
   function openBusiness(businessName: string) {
     setSelectedBusiness(businessName);
     setCurrentScreen("details");
+  } catch (error) {
+    Alert.alert(
+      "Could not open business",
+      error instanceof Error ? error.message : "Please try again."
+    );
   }
+}
 
   function toggleFavorite(businessName: string) {
     if (favorites.includes(businessName)) {
@@ -126,11 +133,14 @@ const [currentScreen, setCurrentScreen] = useState("welcome");
           </TouchableOpacity>
 
           <Text style={styles.reviewsBusinessName}>
-            {selectedBusiness}
+            {selectedBusiness.name}
           </Text>
         </View>
 
-        <ReviewsScreen key={selectedBusiness} />
+        <ReviewsScreen
+  key={selectedBusiness.id}
+  businessId={selectedBusiness.id}
+/>
       </View>
     );
   }
