@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import WelcomeScreen from "./src/screens/WelcomeScreen";
 import SearchScreen from "./src/screens/SearchScreen";
 import BusinessDetailsScreen from "./src/screens/BusinessDetailsScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
@@ -15,12 +15,15 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
-import {ReviewsScreen} from "./src/ReviewsScreen";
+import EventsScreen from "./src/screens/EventsScreen";
+import { ReviewsScreen } from "./src/ReviewsScreen";
+
+
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState("login");
-  const handleLogout = () => {
-    setCurrentScreen("login");
-  };
+  
+const [currentScreen, setCurrentScreen] = useState("welcome");
+
 
   const [selectedBusiness, setSelectedBusiness] =
     useState("Juniper & Grain");
@@ -30,6 +33,10 @@ export default function App() {
   const [userFirstName, setUserFirstName] = useState("");
   const [userLastName, setUserLastName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+
+  function handleLogout() {
+    setCurrentScreen("login");
+  }
 
   function openBusiness(businessName: string) {
     setSelectedBusiness(businessName);
@@ -55,10 +62,18 @@ export default function App() {
     setUserLastName(lastName);
     setUserEmail(email);
 
-    setCurrentScreen("submit");
+    setCurrentScreen("search");
   }
 
-  if (currentScreen === "login") {
+  if (currentScreen === "welcome") {
+    return (
+      <WelcomeScreen
+       onLogin={() => setCurrentScreen("login")}
+       onSignUp={() => setCurrentScreen("signup")}
+      />
+    );
+  }
+   if (currentScreen === "login") {
     return (
       <LoginScreen
         onNavigate={setCurrentScreen}
@@ -89,7 +104,7 @@ export default function App() {
 
   if (currentScreen === "details") {
     return (
-            <BusinessDetailsScreen
+      <BusinessDetailsScreen
         businessName={selectedBusiness}
         onBack={() => setCurrentScreen("search")}
         onViewReviews={() => setCurrentScreen("reviews")}
@@ -97,7 +112,7 @@ export default function App() {
     );
   }
 
-    if (currentScreen === "reviews") {
+  if (currentScreen === "reviews") {
     return (
       <View style={styles.mapContainer}>
         <View style={styles.reviewsHeader}>
@@ -130,18 +145,19 @@ export default function App() {
       />
     );
   }
-if (currentScreen === "events") {
-  return (
-    <EventsScreen
-      onNavigate={setCurrentScreen }
-    />
-  );
-}
+
+  if (currentScreen === "events") {
+    return (
+      <EventsScreen
+        onNavigate={setCurrentScreen}
+      />
+    );
+  }
 
   if (currentScreen === "submit") {
     return (
-      <SubmitBusinessScreen 
-        onNavigate={setCurrentScreen} 
+      <SubmitBusinessScreen
+        onNavigate={setCurrentScreen}
       />
     );
   }
@@ -202,7 +218,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
-    reviewsHeader: {
+  reviewsHeader: {
     paddingTop: 55,
     paddingHorizontal: 20,
     paddingBottom: 12,
