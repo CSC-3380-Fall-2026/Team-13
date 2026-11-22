@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import SearchScreen from "./src/screens/SearchScreen";
@@ -15,179 +10,144 @@ import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
-import {ReviewsScreen} from "./src/ReviewsScreen";
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("login");
-  const handleLogout = () => {
-    setCurrentScreen("login");
-  };
-
-  const [selectedBusiness, setSelectedBusiness] =
-    useState("Juniper & Grain");
-
+  const [screenHistory, setScreenHistory] = useState<string[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState("Juniper & Grain");
   const [favorites, setFavorites] = useState<string[]>([]);
-
   const [userFirstName, setUserFirstName] = useState("");
   const [userLastName, setUserLastName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
+  function navigateTo(nextScreen: string) {
+    if (nextScreen === currentScreen) return;
+    setScreenHistory((prev) => [...prev, currentScreen]);
+    setCurrentScreen(nextScreen);
+  }
+
+  function goBack() {
+    if (screenHistory.length > 0) {
+      const previousScreen = screenHistory[screenHistory.length - 1];
+      setScreenHistory((prev) => prev.slice(0, -1));
+      setCurrentScreen(previousScreen);
+    } else {
+      setCurrentScreen("search");
+    }
+  }
+
   function openBusiness(businessName: string) {
     setSelectedBusiness(businessName);
-    setCurrentScreen("details");
+    navigateTo("details");
   }
 
   function toggleFavorite(businessName: string) {
     if (favorites.includes(businessName)) {
-      setFavorites(
-        favorites.filter((name) => name !== businessName)
-      );
+      setFavorites(favorites.filter((name) => name !== businessName));
     } else {
       setFavorites([...favorites, businessName]);
     }
   }
 
-  function handleSignUp(
-    firstName: string,
-    lastName: string,
-    email: string
-  ) {
+  function handleSignUp(firstName: string, lastName: string, email: string) {
     setUserFirstName(firstName);
     setUserLastName(lastName);
     setUserEmail(email);
-
-    setCurrentScreen("submit");
+    setScreenHistory([]);
+    setCurrentScreen("search");
   }
 
-  if (currentScreen === "login") {
+  // Screens that should show the shared floating back button
+  const showFloatingBackButton = [
+    "signup",
+    "profile",
+    "favorites",
+    "submit",
+    "map",
+  ].includes(currentScreen);
+
+  function renderScreen() {
+    if (currentScreen === "login") {
+      return <LoginScreen onNavigate={navigateTo} />;
+    }
+
+    if (currentScreen === "signup") {
+      return <SignUpScreen onNavigate={navigateTo} onSignUp={handleSignUp} />;
+    }
+
+    if (currentScreen === "profile") {
+      return (
+        <ProfileScreen
+          firstName={userFirstName}
+          lastName={userLastName}
+          email={userEmail}
+          onNavigate={navigateTo}
+        />
+      );
+    }
+
+    if (currentScreen === "details") {
+      return (
+        <BusinessDetailsScreen
+          businessName={selectedBusiness}
+          onBack={goBack}
+        />
+      );
+    }
+
+    if (currentScreen === "favorites") {
+      return (
+        <FavoritesScreen
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          onViewBusiness={openBusiness}
+          onNavigate={navigateTo}
+        />
+      );
+    }
+
+    if (currentScreen === "submit") {
+      return <SubmitBusinessScreen onNavigate={navigateTo} />;
+    }
+
+    if (currentScreen === "map") {
+      return <MapScreen />;
+    }
+
     return (
-      <LoginScreen
-        onNavigate={setCurrentScreen}
-      />
-    );
-  }
-
-  if (currentScreen === "signup") {
-    return (
-      <SignUpScreen
-        onNavigate={setCurrentScreen}
-        onSignUp={handleSignUp}
-      />
-    );
-  }
-
-  if (currentScreen === "profile") {
-    return (
-      <ProfileScreen
-        firstName={userFirstName}
-        lastName={userLastName}
-        email={userEmail}
-        onNavigate={setCurrentScreen}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
-  if (currentScreen === "details") {
-    return (
-            <BusinessDetailsScreen
-        businessName={selectedBusiness}
-        onBack={() => setCurrentScreen("search")}
-        onViewReviews={() => setCurrentScreen("reviews")}
-      />
-    );
-  }
-
-    if (currentScreen === "reviews") {
-    return (
-      <View style={styles.mapContainer}>
-        <View style={styles.reviewsHeader}>
-          <TouchableOpacity
-            onPress={() => setCurrentScreen("details")}
-            accessibilityRole="button"
-          >
-            <Text style={styles.reviewsBackText}>
-              ← Back to Business
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={styles.reviewsBusinessName}>
-            {selectedBusiness}
-          </Text>
-        </View>
-
-        <ReviewsScreen key={selectedBusiness} />
-      </View>
-    );
-  }
-
-  if (currentScreen === "favorites") {
-    return (
-      <FavoritesScreen
+      <SearchScreen
+        onViewBusiness={openBusiness}
+        onNavigate={navigateTo}
         favorites={favorites}
         onToggleFavorite={toggleFavorite}
-        onViewBusiness={openBusiness}
-        onNavigate={setCurrentScreen}
       />
     );
   }
-if (currentScreen === "events") {
+
   return (
-    <EventsScreen
-      onNavigate={setCurrentScreen }
-    />
-  );
-}
+    <View style={styles.container}>
+      {renderScreen()}
 
-  if (currentScreen === "submit") {
-    return (
-      <SubmitBusinessScreen 
-        onNavigate={setCurrentScreen} 
-      />
-    );
-  }
-
-  if (currentScreen === "map") {
-    return (
-      <View style={styles.mapContainer}>
-        <MapScreen />
-
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setCurrentScreen("search")}
-        >
-          <Ionicons
-            name="arrow-back"
-            size={20}
-            color="#ffffff"
-          />
-
-          <Text style={styles.backButtonText}>
-            Search
-          </Text>
+      {showFloatingBackButton && (
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+          <Ionicons name="arrow-back" size={20} color="#ffffff" />
+          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return (
-    <SearchScreen
-      onViewBusiness={openBusiness}
-      onNavigate={setCurrentScreen}
-      favorites={favorites}
-      onToggleFavorite={toggleFavorite}
-    />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  mapContainer: {
+  container: {
     flex: 1,
   },
-
   backButton: {
     position: "absolute",
     top: 55,
     left: 18,
+    zIndex: 999,
+    elevation: 5,
     backgroundColor: "#151515",
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -195,30 +155,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-
   backButtonText: {
     color: "#ffffff",
     fontWeight: "700",
     marginLeft: 5,
-  },
-
-    reviewsHeader: {
-    paddingTop: 55,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    backgroundColor: "#fbf8f3",
-  },
-
-  reviewsBackText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#ff6b21",
-  },
-
-  reviewsBusinessName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#151515",
-    marginTop: 12,
   },
 });
