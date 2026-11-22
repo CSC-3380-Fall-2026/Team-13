@@ -62,6 +62,21 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedReview);
     }
 
+    @org.springframework.web.bind.annotation.DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable String businessId,
+            @PathVariable Long reviewId) {
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+
+        if (review == null || !review.getBusinessId().equals(businessId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        reviewRepository.delete(review);
+        return ResponseEntity.noContent().build();
+    }
+
     public record ReviewRequest(Double rating, String text) {
     }
 }
