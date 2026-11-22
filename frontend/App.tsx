@@ -18,7 +18,8 @@ import SignUpScreen from "./src/screens/SignUpScreen";
 import SubmitBusinessScreen from "./src/screens/SubmitBusinessScreen";
 import EventsScreen from "./src/screens/EventsScreen";
 import { ReviewsScreen } from "./src/ReviewsScreen";
-
+import { apiRequest } from "./src/api";
+import type { Business } from "./src/api";
 
 
 export default function App() {
@@ -39,16 +40,37 @@ const [currentScreen, setCurrentScreen] = useState("welcome");
     setCurrentScreen("login");
   }
 
-  function openBusiness(businessName: string) {
-    setSelectedBusiness(businessName);
-    setCurrentScreen("details");
-  } catch (error) {
-    Alert.alert(
-      "Could not open business",
-      error instanceof Error ? error.message : "Please try again."
-    );
+    async function openBusiness(selection: Business | string) {
+    try {
+      let business: Business;
+
+      if (typeof selection === "string") {
+        const businesses = await apiRequest<Business[]>("/businesses");
+
+        const matches = businesses.filter(
+          (item) => item.name === selection
+        );
+
+        if (matches.length !== 1) {
+          throw new Error(
+            "Please open this business from Search so we can identify it correctly."
+          );
+        }
+
+        business = matches[0];
+      } else {
+        business = selection;
+      }
+
+      setSelectedBusiness(business);
+      setCurrentScreen("details");
+    } catch (error) {
+      Alert.alert(
+        "Could not open business",
+        error instanceof Error ? error.message : "Please try again."
+      );
+    }
   }
-}
 
   function toggleFavorite(businessName: string) {
     if (favorites.includes(businessName)) {
@@ -109,17 +131,17 @@ const [currentScreen, setCurrentScreen] = useState("welcome");
     );
   }
 
-  if (currentScreen === "details") {
+  if (currentScreen === "details" && selectedBusiness) {
     return (
       <BusinessDetailsScreen
-        businessName={selectedBusiness}
+        business={selectedBusiness}
         onBack={() => setCurrentScreen("search")}
         onViewReviews={() => setCurrentScreen("reviews")}
       />
     );
   }
 
-  if (currentScreen === "reviews") {
+  if (currentScreen === "reviews" && selectedBusiness) {
     return (
       <View style={styles.mapContainer}>
         <View style={styles.reviewsHeader}>
