@@ -6,6 +6,7 @@ import {
   Button,
   StyleSheet,
   FlatList,
+  Alert,
 } from "react-native";
 import { apiRequest } from "./api";
 
@@ -32,7 +33,9 @@ export const ReviewsScreen = ({
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const deletionInProgress = useRef(false);
   const submissionInProgress = useRef(false);
   const mounted = useRef(false);
 
@@ -91,7 +94,14 @@ export const ReviewsScreen = ({
       : "No ratings yet";
 
   const handleSubmit = async () => {
-    if (submissionInProgress.current || isLoading || loadError) return;
+        if (
+      submissionInProgress.current ||
+      deletionInProgress.current ||
+      isLoading ||
+      loadError
+    ) {
+      return;
+    }
 
     setSubmitError("");
 
@@ -149,6 +159,70 @@ export const ReviewsScreen = ({
       if (mounted.current) setIsSubmitting(false);
     }
   };
+
+    async function deleteReview(reviewId: number) {
+    if (
+      deletionInProgress.current ||
+      submissionInProgress.current
+    ) {
+      return;
+    }
+
+    deletionInProgress.current = true;
+    setDeletingId(reviewId);
+    setDeleteError("");
+
+    try {
+      await apiRequest<void>(
+        `/businesses/${businessId}/reviews/${reviewId}`,
+        { method: "DELETE" }
+      );
+
+      if (mounted.current) {
+        setReviews((previous) =>
+          previous.filter((review) => review.id !== reviewId)
+        );
+      }
+    } catch (error) {
+      if (mounted.current) {
+        setDeleteError(
+          error instanceof Error
+            ? error.message
+            : "Could not delete the review. Please try again."
+        );
+      }
+    } finally {
+      deletionInProgress.current = false;
+
+      if (mounted.current) {
+        setDeletingId(null);
+      }
+    }
+  }
+
+  function confirmDelete(reviewId: number) {
+    if (
+      deletionInProgress.current ||
+      submissionInProgress.current
+    ) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete review?",
+      "This will permanently remove this review.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            void deleteReview(reviewId);
+          },
+        },
+      ]
+    );
+  }
 
   const handleCancel = () => {
     if (submissionInProgress.current) return;
@@ -240,6 +314,11 @@ export const ReviewsScreen = ({
           )}
 
           <Text style={styles.reviewsTitle}>Recent Reviews:</Text>
+                    {!!deleteError && (
+            <Text style={styles.error} accessibilityRole="alert">
+              {deleteError}
+            </Text>
+          )}
 
           <FlatList
             data={reviews}
@@ -248,12 +327,25 @@ export const ReviewsScreen = ({
             ListEmptyComponent={
               <Text>No reviews yet. Be the first to leave one!</Text>
             }
-            renderItem={({ item }) => (
+                        renderItem={({ item }) => (
               <View style={styles.reviewItem}>
                 <Text style={styles.reviewStars}>
                   {item.rating} Stars
                 </Text>
+
                 <Text>{item.text}</Text>
+
+                <Button
+                  title={
+                    deletingId === item.id
+                      ? "Deleting..."
+                      : "Delete Review"
+                  }
+                  color="#b00020"
+                  disabled={deletingId !== null || isSubmitting}
+                  onPress={() => confirmDelete(item.id)}
+                  accessibilityLabel={`Delete review: ${item.text}`}
+                />
               </View>
             )}
           />
