@@ -31,28 +31,28 @@ export default function FavoritesScreen({
 }: FavoritesScreenProps) {
   const businesses: Business[] = [
     {
-      name: "Juniper & Grain",
+      name: "Tiger Treats",
       category: "Food",
       distance: "0.3 mi",
       rating: 4.9,
       reviews: 128,
     },
     {
-      name: "North & Pine",
+      name: "Bengal Bandits",
       category: "Shopping",
       distance: "0.6 mi",
       rating: 4.8,
       reviews: 94,
     },
     {
-      name: "Common Ground Studio",
+      name: "Tiger Tapers and Styling",
       category: "Services",
       distance: "0.8 mi",
       rating: 4.7,
       reviews: 76,
     },
     {
-      name: "Little Bird Bakery",
+      name: "Bayou Bites",
       category: "Food",
       distance: "1.1 mi",
       rating: 4.9,
